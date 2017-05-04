@@ -4,29 +4,38 @@ VERSION=`grep kVersion revision.h | grep -o [:0123456789:].*[:0123456789:]`
 ##Build script for Darwin Streaming Server
 if [ `uname` = "Darwin" ] ; then
     PLATFORM=dss
+elif [ `uname` = "Linux" ] ; then
+    PLATFORM=Linux
 else
     PLATFORM=$VERSION
 fi
 
+echo "$PLATFORM"
+
 SHOW_HELP=0
 if [ "$1" = "-v" ] ; then
    SHOW_HELP=1
+   echo "show help enable"
 fi
 
 if [ "$1" = "-h" ] ; then
    SHOW_HELP=1
+   echo "show help enable"
 fi
 
 if [ "$1" = "?" ] ; then
    SHOW_HELP=1
+   echo "show help enable"
 fi
 
 if [ "$1" = "help" ] ; then
    SHOW_HELP=1
+   echo "show help enable"
 fi
 
 if [ $SHOW_HELP = 1 ] ; then
-	if [ $PLATFORM = dss ] ; then
+    echo "start usage here..."
+	if [ $PLATFORM = dss ] || [ $PLATFORM = Linux ]; then
 		echo ""
 		echo "OS X Darwin Streaming Server ($PLATFORM v$VERSION)"
 		echo ""
@@ -60,7 +69,8 @@ PLAT=$OSNAME.$HARDWARENAME
 
 echo "Darwin Streaming Server"
 echo "-----------------------"
-
+echo "start compile in $PLAT"
+echo "-----------------------"
 
 case $PLAT in
 
@@ -259,8 +269,11 @@ if [ "$*" = "install" ] ; then
                 exit 1
         fi
 fi
-
+echo "-----------------------"
+echo "-----------------------"
 echo Building for $PLAT with $CPLUS
+echo "-----------------------"
+echo "-----------------------"
 
 if [ "${OSNAME}" = "Darwin"  ]; then
     BUILDTOOL=""
