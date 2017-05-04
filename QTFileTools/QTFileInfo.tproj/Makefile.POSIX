@@ -7,7 +7,7 @@ CC = $(CCOMP)
 LINK = $(LINKER)
 CCFLAGS += $(COMPILER_FLAGS) $(INCLUDE_FLAG) ../../PlatformHeader.h -g -Wall
 LIBS = $(CORE_LINK_LIBS) -lCommonUtilitiesLib  -lQTFileExternalLib ../../CommonUtilitiesLib/libCommonUtilitiesLib.a
-
+LIBS+ = -lpthread
 #OPTIMIZATION
 CCFLAGS += -O3
 

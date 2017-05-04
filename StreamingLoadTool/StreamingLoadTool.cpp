@@ -147,7 +147,6 @@ int main(int argc, char *argv[])
     act.sa_mask = 0;
     act.sa_flags = 0;
     act.sa_handler = (void(*)(...))&sigcatcher;
-    act.sa_handler = (void(*)(int))&sigcatcher;
 #endif
 	(void)::sigaction(SIGPIPE, &act, NULL);
 	(void)::sigaction(SIGINT, &act, NULL);
