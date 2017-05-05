@@ -206,6 +206,11 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
 #else
 #error
 #endif
+	#if DEBUG
+	//-----start debug by jeffrey -----
+	qtss_printf("SocketUtils:sNumIPAddrs = %d\n", sNumIPAddrs);
+	//----- end debug by jeffrey -----
+	#endif
     struct ifconf ifc;
     ::memset(&ifc,0,sizeof(ifc));
     ifc.ifc_len = sNumIPAddrs * sizeof(struct ifreq);
@@ -288,7 +293,13 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
         sIPAddrInfoArray[currentIndex].fIPAddrStr.Ptr = new char[sIPAddrInfoArray[currentIndex].fIPAddrStr.Len + 2];
         ::strcpy(sIPAddrInfoArray[currentIndex].fIPAddrStr.Ptr, theAddrStr);
 
-        
+		#if DEBUG
+		//-----start debug by jeffrey -----
+		qtss_printf("SocketUtils:sIPAddrInfoArray[%d].fIPAddrStr.Ptr = %s\n", currentIndex,
+			sIPAddrInfoArray[currentIndex].fIPAddrStr.Ptr);
+		//----- end debug by jeffrey -----
+		#endif
+		
         struct hostent* theDNSName = NULL;
         if (lookupDNSName) //convert this addr to a dns name, and store it
         {   theDNSName = ::gethostbyaddr((char *)&theAddr->sin_addr, sizeof(theAddr->sin_addr), AF_INET);
@@ -307,7 +318,13 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
             sIPAddrInfoArray[currentIndex].fDNSNameStr.Ptr = new char[sIPAddrInfoArray[currentIndex].fDNSNameStr.Len + 2];
             ::strcpy(sIPAddrInfoArray[currentIndex].fDNSNameStr.Ptr, sIPAddrInfoArray[currentIndex].fIPAddrStr.Ptr);
         }
+		#if DEBUG
         //move onto the next array index
+		//-----start debug by jeffrey -----
+		qtss_printf("SocketUtils:sIPAddrInfoArray[%d].fDNSNameStr.Ptr = %s\n", currentIndex,
+			sIPAddrInfoArray[currentIndex].fDNSNameStr.Ptr);
+		//----- end debug by jeffrey -----      
+		#endif
         currentIndex++;
         
     }
@@ -321,6 +338,15 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
 #endif
     
 #else // !__Win32__
+
+#if DEBUG
+	//-----start debug by jeffrey -----
+	qtss_printf("-----------------------------\n");
+	qtss_printf("for other platform started...\n");
+	qtss_printf("SocketUtils:sNumIPAddrs = %d\n", sNumIPAddrs);
+	qtss_printf("-----------------------------\n");
+	//----- end debug by jeffrey -----
+#endif
 
     //Most of this code is similar to the SIOCGIFCONF code presented in Stevens,
     //Unix Network Programming, section 16.6
@@ -385,6 +411,14 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
         if (ifr->ifr_addr.sa_family == AF_INET)
             sNumIPAddrs++;
     }
+
+#if DEBUG
+	//-----start debug by jeffrey -----
+	qtss_printf("-----------------------------\n");
+	qtss_printf("SocketUtils:sNumIPAddrs = %d\n", sNumIPAddrs);
+	qtss_printf("-----------------------------\n");
+	//----- end debug by jeffrey -----
+#endif
 
 #ifdef TRUCLUSTER
     
@@ -508,7 +542,16 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
                 sIPAddrInfoArray[currentIndex].fDNSNameStr.Ptr = new char[sIPAddrInfoArray[currentIndex].fDNSNameStr.Len + 2];
                 ::strcpy(sIPAddrInfoArray[currentIndex].fDNSNameStr.Ptr, sIPAddrInfoArray[currentIndex].fIPAddrStr.Ptr);
             }
-            
+			#if DEBUG
+			//-----start debug by jeffrey -----
+			qtss_printf("-----------------------------\n");
+			qtss_printf("SocketUtils:sIPAddrInfoArray[%d].fIPAddrStr.Ptr = %s\n", currentIndex,
+				sIPAddrInfoArray[currentIndex].fIPAddrStr.Ptr);
+			qtss_printf("SocketUtils:sIPAddrInfoArray[%d].fDNSNameStr.Ptr = %s\n", currentIndex,
+				sIPAddrInfoArray[currentIndex].fDNSNameStr.Ptr);				
+			qtss_printf("-----------------------------\n");
+			//----- end debug by jeffrey -----
+			#endif
             //move onto the next array index
             currentIndex++;
         }

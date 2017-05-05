@@ -251,21 +251,21 @@ int main(int argc, char * argv[])
 #if __MacOSX__
     struct rlimit rl;
     getrlimit(RLIMIT_NOFILE,  &rl); //get the default values
-    //printf("current open file limit =%"_U32BITARG_"\n", (UInt32) rl.rlim_cur); //leopard returns  256
-    //printf("current open file max =%"_U32BITARG_"\n", (UInt32) rl.rlim_max);//leopard returns infinity (-1)
+    printf("current open file limit =%"_U32BITARG_"\n", (UInt32) rl.rlim_cur); //leopard returns  256
+    printf("current open file max =%"_U32BITARG_"\n", (UInt32) rl.rlim_max);//leopard returns infinity (-1)
     
     rl. rlim_max = (rlim_t) RLIM_INFINITY -1; //use a big number to find out the real max but do not use RLIM_INFINITY that is not allowed. see man page
     setrlimit (RLIMIT_NOFILE, &rl); //resets the max value stored by limits to the boot config values.
     getrlimit(RLIMIT_NOFILE,  &rl); //now get the real max value
-    //printf("current open file limit =%"_U32BITARG_"\n", (UInt32) rl.rlim_cur);
-    //printf("current open file max =%"_U32BITARG_"\n", (UInt32) rl.rlim_max);
+    printf("current open file limit =%"_U32BITARG_"\n", (UInt32) rl.rlim_cur);
+    printf("current open file max =%"_U32BITARG_"\n", (UInt32) rl.rlim_max);
     
     rl.rlim_cur = (rlim_t) ( (float) rl.rlim_max * 0.9);   //use 90% of the max set in /etc/rc.server and /etc/sysctl.conf.default
     setrlimit (RLIMIT_NOFILE, &rl);  //finally set the current limit 
     
 #endif
     
-#if 0 // testing
+#if 1 // testing
     getrlimit(RLIMIT_NOFILE,  &rl);
     printf("current open file limit =%"_U32BITARG_"\n", (UInt32) rl.rlim_cur);
     printf("current open file max =%"_U32BITARG_"\n", (UInt32) rl.rlim_max);
@@ -371,7 +371,7 @@ int main(int argc, char * argv[])
     }
     
   
-    // Check port
+    // Check port 11512
     if (thePort < 0 || thePort > 65535)
     { 
         qtss_printf("Invalid port value = %d max value = 65535\n",thePort);
@@ -577,8 +577,11 @@ int main(int argc, char * argv[])
     (void) ::umask(S_IWGRP|S_IWOTH); // make sure files are opened with default of owner -rw-r-r-
 #endif
 
+	printf("start StartServer here....\n");
     //This function starts, runs, and shuts down the server
-    if (::StartServer(&theXMLParser, &theMessagesSource, thePort, statsUpdateInterval, theInitialState, dontFork, debugLevel, debugOptions) != qtssFatalErrorState)
+    if (::StartServer(&theXMLParser, &theMessagesSource, thePort, 
+		statsUpdateInterval, theInitialState, dontFork, debugLevel, 
+		debugOptions) != qtssFatalErrorState)
     {    ::RunServer();
          CleanPid(false);
          exit (EXIT_SUCCESS);

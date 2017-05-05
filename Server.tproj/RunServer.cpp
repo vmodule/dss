@@ -69,7 +69,11 @@ SInt64 sLastDebugTotalQuality = 0;
 #include <sched.h>
 #endif
 
-QTSS_ServerState StartServer(XMLPrefsParser* inPrefsSource, PrefsSource* inMessagesSource, UInt16 inPortOverride, int statsUpdateInterval, QTSS_ServerState inInitialState, Bool16 inDontFork, UInt32 debugLevel, UInt32 debugOptions)
+QTSS_ServerState StartServer(
+	XMLPrefsParser* inPrefsSource, PrefsSource* inMessagesSource,
+	UInt16 inPortOverride, int statsUpdateInterval, 
+	QTSS_ServerState inInitialState, Bool16 inDontFork,
+	UInt32 debugLevel, UInt32 debugOptions)
 {
     //Mark when we are done starting up. If auto-restart is enabled, we want to make sure
     //to always exit with a status of 0 if we encountered a problem WHILE STARTING UP. This
