@@ -7,7 +7,7 @@ C++ = $(CPLUS)
 CC = $(CCOMP)
 LINK = $(LINKER)
 CCFLAGS += $(COMPILER_FLAGS) $(INCLUDE_FLAG) ../PlatformHeader.h -g -Wall
-
+#LIBS = $(CORE_LINK_LIBS)
 # OPTIMIZATION
 CCFLAGS += -O2
 

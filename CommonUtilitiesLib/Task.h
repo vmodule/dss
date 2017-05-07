@@ -163,32 +163,35 @@ class Task
 
 class TaskThread : public OSThread
 {
-    public:
-    
-        //Implementation detail: all tasks get run on TaskThreads.
-        
-                        TaskThread() :  OSThread(), fTaskThreadPoolElem()
-                                        {fTaskThreadPoolElem.SetEnclosingObject(this);}
-						virtual         ~TaskThread() { this->StopAndWaitForThread(); }
-           
-    private:
-    
-        enum
-        {
-            kMinWaitTimeInMilSecs = 10  //UInt32
-        };
+public:
+    //Implementation detail: all tasks get run on TaskThreads.
+    TaskThread() 
+    	:  OSThread()
+    	, fTaskThreadPoolElem()
+    {
+     	fTaskThreadPoolElem.SetEnclosingObject(this);
+	}
+	virtual ~TaskThread() 
+	{ 
+		this->StopAndWaitForThread();
+	}   
+private:
 
-        virtual void    Entry();
-        Task*           WaitForTask();
-        
-        OSQueueElem     fTaskThreadPoolElem;
-        
-        OSHeap              fHeap;
-        OSQueue_Blocking    fTaskQueue;
-        
-        
-        friend class Task;
-        friend class TaskThreadPool;
+    enum
+    {
+        kMinWaitTimeInMilSecs = 10  //UInt32
+    };
+
+    virtual void    Entry();
+    Task*           WaitForTask();
+    
+    OSQueueElem     fTaskThreadPoolElem;
+    
+    OSHeap              fHeap;
+    OSQueue_Blocking    fTaskQueue;
+  
+    friend class Task;
+    friend class TaskThreadPool;
 };
 
 //Because task threads share a global queue of tasks to execute,

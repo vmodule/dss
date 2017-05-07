@@ -145,7 +145,7 @@ QTSSAttrInfoDict::AttrInfo  QTSServerInterface::sAttributes[] =
     
 };
 
-void    QTSServerInterface::Initialize()
+void QTSServerInterface::Initialize()
 {
     for (UInt32 x = 0; x < qtssSvrNumParams; x++)
         QTSSDictionaryMap::GetMap(QTSSDictionaryMap::kServerDictIndex)->
@@ -160,29 +160,65 @@ void    QTSServerInterface::Initialize()
     //Write out a premade server header
     StringFormatter serverFormatter(sServerHeaderPtr.Ptr, kMaxServerHeaderLen);
     serverFormatter.Put(RTSPProtocol::GetHeaderString(qtssServerHeader));
+
     serverFormatter.Put(": ");
     serverFormatter.Put(sServerNameStr);
+#if DEBUG
+	//-----start debug by jeffrey -----
+	qtss_printf("-----------------------------\n");
+	qtss_printf("QTSServerInterface:sServerNameStr = %s\n", 
+		sServerNameStr.Ptr);//DSS
+	//----- end debug by jeffrey -----
+#endif	
     serverFormatter.PutChar('/');
     serverFormatter.Put(sServerVersionStr);
+#if DEBUG
+	//-----start debug by jeffrey -----
+	qtss_printf("QTSServerInterface:sServerVersionStr = %s\n", 
+		sServerVersionStr.Ptr);//6.0.3
+	//----- end debug by jeffrey -----
+#endif	
     serverFormatter.PutChar(' ');
 
     serverFormatter.PutChar('(');
     serverFormatter.Put("Build/");
     serverFormatter.Put(sServerBuildStr);
+#if DEBUG
+	//-----start debug by jeffrey -----
+	qtss_printf("QTSServerInterface:sServerBuildStr = %s\n", 
+		sServerBuildStr.Ptr);//526.3
+	//----- end debug by jeffrey -----
+#endif		
     serverFormatter.Put("; ");
     serverFormatter.Put("Platform/");
     serverFormatter.Put(sServerPlatformStr);
+#if DEBUG
+	//-----start debug by jeffrey -----
+	qtss_printf("QTSServerInterface:sServerPlatformStr = %s\n", 
+		sServerPlatformStr.Ptr);//Linux
+	//----- end debug by jeffrey -----
+#endif	
     serverFormatter.PutChar(';');
  
     if (sServerCommentStr.Len > 0)
     {
         serverFormatter.PutChar(' ');
         serverFormatter.Put(sServerCommentStr);
+#if DEBUG
+		//-----start debug by jeffrey -----
+		qtss_printf("QTSServerInterface:sServerCommentStr = %s\n", 
+			sServerCommentStr.Ptr);//Release/Darwin Streaming Server; State/Development; 
+		//----- end debug by jeffrey -----
+#endif		
     }
     serverFormatter.PutChar(')');
 
-
     sServerHeaderPtr.Len = serverFormatter.GetCurrentOffset();
+#if DEBUG
+	//-----start debug by jeffrey -----
+	qtss_printf("-----------------------------\n");
+	//----- end debug by jeffrey -----
+#endif
     Assert(sServerHeaderPtr.Len < kMaxServerHeaderLen);
 }
 

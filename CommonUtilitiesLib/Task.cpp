@@ -44,8 +44,13 @@ OSMutexRW       TaskThreadPool::sMutexRW;
 static char* sTaskStateStr="live_"; //Alive
 
 Task::Task()
-:   fEvents(0), fUseThisThread(NULL),fDefaultThread(NULL), fWriteLock(false), fTimerHeapElem(), fTaskQueueElem(), pickerToUse(&Task::sShortTaskThreadPicker)
-{
+: fEvents(0)
+, fUseThisThread(NULL)
+, fDefaultThread(NULL)
+, fWriteLock(false)
+, fTimerHeapElem()
+, fTaskQueueElem()
+, pickerToUse(&Task::sShortTaskThreadPicker) {
 #if DEBUG
     fInRunCount = 0;
 #endif
@@ -69,15 +74,16 @@ void Task::SetTaskName(char* name)
 
 Bool16 Task::Valid()
 {
-    if  (   (this->fTaskName == NULL)
-         || (0 != ::strncmp(sTaskStateStr,this->fTaskName, 5))
-         )
-     {
-        if (TASK_DEBUG) qtss_printf(" Task::Valid Found invalid task = %p\n", (void *)this);
-        
-        return false;
-     }
-    
+	if ( (this->fTaskName == NULL)
+	     || (0 != ::strncmp(sTaskStateStr,this->fTaskName, 5))
+	     ){
+	    if (TASK_DEBUG) 
+			qtss_printf(" Task::Valid Found invalid task = %p\n", 
+			(void *)this);
+	    
+	    return false;
+	 }
+
     return true;
 }
 
@@ -319,13 +325,14 @@ Task* TaskThread::WaitForTask()
     while (true)
     {
         SInt64 theCurrentTime = OS::Milliseconds();
-        
-        if ((fHeap.PeekMin() != NULL) && (fHeap.PeekMin()->GetValue() <= theCurrentTime))
-        {    
-            if (TASK_DEBUG) qtss_printf("TaskThread::WaitForTask found timer-task=%s thread %p fHeap.CurrentHeapSize(%"_U32BITARG_") taskElem = %p enclose=%p\n",((Task*)fHeap.PeekMin()->GetEnclosingObject())->fTaskName, (void *) this, fHeap.CurrentHeapSize(), (void *) fHeap.PeekMin(), (void *) fHeap.PeekMin()->GetEnclosingObject());
+        if ((fHeap.PeekMin() != NULL) && 
+			(fHeap.PeekMin()->GetValue() <= theCurrentTime)) {    
+            if (TASK_DEBUG) 
+				qtss_printf("TaskThread::WaitForTask found timer-task=%s thread %p fHeap.CurrentHeapSize(%"_U32BITARG_") taskElem = %p enclose=%p\n",
+					((Task*)fHeap.PeekMin()->GetEnclosingObject())->fTaskName, (void *) this, fHeap.CurrentHeapSize(), (void *) fHeap.PeekMin(), (void *) fHeap.PeekMin()->GetEnclosingObject());
             return (Task*)fHeap.ExtractMin()->GetEnclosingObject();
         }
-    
+		
         //if there is an element waiting for a timeout, figure out how long we should wait.
         SInt64 theTimeout = 0;
         if (fHeap.PeekMin() != NULL)
@@ -344,7 +351,9 @@ Task* TaskThread::WaitForTask()
         OSQueueElem* theElem = fTaskQueue.DeQueueBlocking(this, (SInt32) theTimeout);
         if (theElem != NULL)
         {    
-            if (TASK_DEBUG) qtss_printf("TaskThread::WaitForTask found signal-task=%s thread %p fTaskQueue.GetLength(%"_U32BITARG_") taskElem = %p enclose=%p\n", ((Task*)theElem->GetEnclosingObject())->fTaskName,  (void *) this, fTaskQueue.GetQueue()->GetLength(), (void *)  theElem,  (void *)theElem->GetEnclosingObject() );
+            if (TASK_DEBUG) 
+				qtss_printf("TaskThread::WaitForTask found signal-task=%s thread %p fTaskQueue.GetLength(%"_U32BITARG_") taskElem = %p enclose=%p\n",
+				((Task*)theElem->GetEnclosingObject())->fTaskName,  (void *) this, fTaskQueue.GetQueue()->GetLength(), (void *)  theElem,  (void *)theElem->GetEnclosingObject() );
             return (Task*)theElem->GetEnclosingObject();
         }
 

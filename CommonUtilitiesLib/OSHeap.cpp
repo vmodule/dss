@@ -39,35 +39,34 @@
 OSHeap::OSHeap(UInt32 inStartSize)
 : fFreeIndex(1)
 {
-    if (inStartSize < 2)
-        fArraySize = 2;
-    else
-        fArraySize = inStartSize;
-        
-    fHeap = NEW OSHeapElem*[fArraySize];
+	if (inStartSize < 2)
+	    fArraySize = 2;
+	else
+	    fArraySize = inStartSize;
+	    
+	fHeap = NEW OSHeapElem*[fArraySize];
 }
 
 void OSHeap::Insert(OSHeapElem* inElem)
 {
-    Assert(inElem != NULL);
-    
-    if ((fHeap == NULL) || (fFreeIndex == fArraySize))
-    {
-        fArraySize *= 2;
-        OSHeapElem** tempArray = NEW OSHeapElem*[fArraySize];
-        if ((fHeap != NULL) && (fFreeIndex > 1))
-            memcpy(tempArray, fHeap, sizeof(OSHeapElem*) * fFreeIndex);
-            
-        delete [] fHeap;
-        fHeap = tempArray;
-    }
-    
-    Assert(fHeap != NULL);
-    Assert(inElem->fCurrentHeap == NULL);
-    Assert(fArraySize > fFreeIndex);
-    
+	Assert(inElem != NULL);
+	if ((fHeap == NULL) || (fFreeIndex == fArraySize))
+	{
+	    fArraySize *= 2;
+	    OSHeapElem** tempArray = NEW OSHeapElem*[fArraySize];
+	    if ((fHeap != NULL) && (fFreeIndex > 1))
+	        memcpy(tempArray, fHeap,
+	        	sizeof(OSHeapElem*) * fFreeIndex);
+	    delete [] fHeap;
+	    fHeap = tempArray;
+	}
+
+	Assert(fHeap != NULL);
+	Assert(inElem->fCurrentHeap == NULL);
+	Assert(fArraySize > fFreeIndex);
+
 #if _OSHEAP_TESTING_
-    SanityCheck(1);
+	SanityCheck(1);
 #endif
 
     //insert the element into the last leaf of the tree
@@ -193,7 +192,8 @@ void OSHeap::SanityCheck(UInt32 root)
         }
         if (((root * 2) + 1) < fFreeIndex)
         {
-            Assert(fHeap[root]->fValue <= fHeap[(root * 2) + 1]->fValue);
+            Assert(fHeap[root]->fValue <= 
+				fHeap[(root * 2) + 1]->fValue);
             SanityCheck((root * 2) + 1);
         }
     }

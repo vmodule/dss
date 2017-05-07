@@ -25,13 +25,13 @@ void OSThread::Initialize()
     pthread_key_create(&OSThread::gMainKey, NULL);
 #endif
 }
-2
+2.3.Socket 静态初始化
 void Socket::Initialize() { 
 	sEventThread = new EventThread();
 }
 创建EventThread实例，由于EventThread是OSThread的子类所以在此同时创建了OSThread
 
-2.3、SocketUtils初始化
+2.4、SocketUtils初始化
 void SocketUtils::Initialize(Bool16 lookupDNSName)
 {
     //Most of this code is similar to the SIOCGIFCONF code presented in Stevens,
@@ -138,7 +138,7 @@ void SocketUtils::Initialize(Bool16 lookupDNSName)
 该函数最重要的就是从系统中获取网络接口并为每个网络接口分配一个IPAddrInfo结构并进项填充,最后将这些结构保存到
 sIPAddrInfoArray数组当中
 
-2.4、使用poll监听啥？
+2.5、使用poll监听啥？
 //ev.cpp
 void select_startevents()
 {

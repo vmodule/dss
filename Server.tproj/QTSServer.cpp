@@ -348,8 +348,8 @@ Bool16 QTSServer::SetDefaultIPAddr()
     return true;
 }               
 
-
-Bool16 QTSServer::CreateListeners(Bool16 startListeningNow, QTSServerPrefs* inPrefs, UInt16 inPortOverride)
+Bool16 QTSServer::CreateListeners(Bool16 startListeningNow, 
+	QTSServerPrefs* inPrefs, UInt16 inPortOverride)
 {
     struct PortTracking
     {
@@ -396,12 +396,10 @@ Bool16 QTSServer::CreateListeners(Bool16 startListeningNow, QTSServerPrefs* inPr
                 thePortTrackers[currentIndex].fPort = thePorts[portIndex];
                 thePortTrackers[currentIndex].fIPAddr = theIPAddrs[index];
             }
-        }
-                
-                delete [] thePorts;
+        }   
+        delete [] thePorts;
     }
-    
-        delete [] theIPAddrs;
+    delete [] theIPAddrs;
     //
     // Now figure out which of these ports we are *already* listening on.
     // If we already are listening on that port, just move the pointer to the

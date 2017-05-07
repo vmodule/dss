@@ -847,7 +847,7 @@ void QTSSDictionaryMap::Initialize()
 
     // Setup the Attr Info attributes before constructing any other dictionaries
     for (UInt32 x = 0; x < qtssAttrInfoNumParams; x++)
-        sDictionaryMaps[kAttrInfoDictIndex]->SetAttribute(x, QTSSAttrInfoDict::sAttributes[x].fAttrName,
+        sDictionaryMaps[kAttrInfoDictIndex]->SetAttribute(x,QTSSAttrInfoDict::sAttributes[x].fAttrName,
                                                             QTSSAttrInfoDict::sAttributes[x].fFuncPtr,
                                                             QTSSAttrInfoDict::sAttributes[x].fAttrDataType,
                                                             QTSSAttrInfoDict::sAttributes[x].fAttrPermission);

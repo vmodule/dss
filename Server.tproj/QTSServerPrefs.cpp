@@ -492,10 +492,18 @@ void QTSServerPrefs::RereadServerPreferences(Bool16 inWriteMissingPrefs)
         ContainerRef server = fPrefsSource->GetRefForServer();
         ContainerRef pref = fPrefsSource->GetPrefRefByName( server, theMap->GetAttrName(x) );
         char* thePrefValue = NULL;
-        if (pref != NULL)
-            thePrefValue = fPrefsSource->GetPrefValueByRef( pref, 0, &thePrefName,
-                                                                    (char**)&thePrefTypeStr);
-        
+        if (pref != NULL) {
+            thePrefValue = fPrefsSource->GetPrefValueByRef(pref, 
+				0, &thePrefName,(char**)&thePrefTypeStr);
+			//start debug by jeffrey
+			#ifdef DEBUG
+			qtss_printf("QTSServerPrefs:");
+	        qtss_printf("(%s,",theMap->GetAttrName(x));
+	        qtss_printf("%s)\n",thePrefValue);
+			#endif
+			//end debug by jeffrey
+		}
+		
         if ((thePrefValue == NULL) && (x < qtssPrefsNumParams)) // Only generate errors for server prefs
         {
             //
@@ -506,14 +514,18 @@ void QTSServerPrefs::RereadServerPreferences(Bool16 inWriteMissingPrefs)
                 // Only log this as an error if there is a default (an empty string
                 // doesn't count). If there is no default, we will constantly print
                 // out an error message...
-                QTSSModuleUtils::LogError(  QTSSModuleUtils::GetMisingPrefLogVerbosity(),
+                QTSSModuleUtils::LogError(QTSSModuleUtils::GetMisingPrefLogVerbosity(),
                                             qtssServerPrefMissing,
                                             0,
                                             sAttributes[x].fAttrName,
                                             sPrefInfo[x].fDefaultValue);
             }
-            
-            this->SetPrefValue(x, 0, sPrefInfo[x].fDefaultValue, sAttributes[x].fAttrDataType);
+			#ifdef DEBUG
+            qtss_printf("QTSServerPrefs: process default value for %s\n",
+					theMap->GetAttrName(x));
+			#endif
+            this->SetPrefValue(x, 0, sPrefInfo[x].fDefaultValue,
+            	sAttributes[x].fAttrDataType);
             if (sPrefInfo[x].fAdditionalDefVals != NULL)
             {
                 //
@@ -585,7 +597,7 @@ void QTSServerPrefs::RereadServerPreferences(Bool16 inWriteMissingPrefs)
         
         UInt32 theNumValues = 0;
         if ((x < qtssPrefsNumParams) && (!sPrefInfo[x].fAllowMultipleValues))
-            theNumValues = 1;
+            theNumValues = 1;//kDontAllowMultipleValues
             
         this->SetPrefValuesFromFileWithRef(pref, x, theNumValues);
     }
