@@ -182,21 +182,21 @@ OSHeapElem* OSHeap::Remove(OSHeapElem* elem)
 
 void OSHeap::SanityCheck(UInt32 root)
 {
-    //make sure root is greater than both its children. Do so recursively
-    if (root < fFreeIndex)
-    {
-        if ((root * 2) < fFreeIndex)
-        {
-            Assert(fHeap[root]->fValue <= fHeap[root * 2]->fValue);
-            SanityCheck(root * 2);
-        }
-        if (((root * 2) + 1) < fFreeIndex)
-        {
-            Assert(fHeap[root]->fValue <= 
+	//make sure root is greater than both its children. Do so recursively
+	if (root < fFreeIndex)
+	{
+	    if ((root * 2) < fFreeIndex)
+	    {
+	        Assert(fHeap[root]->fValue <= fHeap[root * 2]->fValue);
+	        SanityCheck(root * 2);
+	    }
+	    if (((root * 2) + 1) < fFreeIndex)
+	    {
+	        Assert(fHeap[root]->fValue <= 
 				fHeap[(root * 2) + 1]->fValue);
-            SanityCheck((root * 2) + 1);
-        }
-    }
+	        SanityCheck((root * 2) + 1);
+	    }
+	}
 }
 
 

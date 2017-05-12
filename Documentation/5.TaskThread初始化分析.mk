@@ -98,7 +98,11 @@ Bool16 TaskThreadPool::AddThreads(UInt32 numToAdd)
         
     return true;
 }
-
+/**
+该函数首先分配一个sTaskThreadArray指针数组,数组的大小numThreads
+然后创建sTaskThreadArray指针数组中的每个元素TaskThread指针,成功创建之后
+运行这些TaskThread,接下来先看看TaskThread和它的父类之间的关系
+**/
 /**
 4.2
 TaskThread和它父类OSThread的构造函数和析构函数分析
@@ -108,10 +112,10 @@ TaskThread::TaskThread()
 fTaskThreadPoolElem(){
     fTaskThreadPoolElem.SetEnclosingObject(this);
 }
+
 TaskThread::~TaskThread() {
  this->StopAndWaitForThread();
 }
-
 void OSThread::Join()
 {
     // What we're trying to do is allow the thread we want to delete to complete

@@ -172,27 +172,26 @@ void    Task::GlobalUnlock()
     }                                               
 }
 
-void    Task::SetThreadPicker(unsigned int* picker)
+void Task::SetThreadPicker(unsigned int* picker)
 {
-    pickerToUse = picker;
-    Assert(pickerToUse != NULL);
-    if (TASK_DEBUG)
-    {
-        if (fTaskName[0] == 0) ::strcpy(fTaskName, " corrupt task");
-        
-        if (&Task::sShortTaskThreadPicker == pickerToUse)
-        {
-           qtss_printf("Task::SetThreadPicker sShortTaskThreadPicker for task=%s\n", fTaskName);
-        }
-        else if (&Task::sBlockingTaskThreadPicker == pickerToUse)
-        {
-            qtss_printf("Task::SetThreadPicker sBlockingTaskThreadPicker for task=%s\n",fTaskName);
-        }
-        else
-        {   qtss_printf("Task::SetThreadPicker ERROR unknown picker for task=%s\n",fTaskName);        
-        }
-     }
-
+	pickerToUse = picker;
+	Assert(pickerToUse != NULL);
+	if (TASK_DEBUG)
+	{
+	    if (fTaskName[0] == 0) ::strcpy(fTaskName, " corrupt task");
+	    
+	    if (&Task::sShortTaskThreadPicker == pickerToUse)
+	    {
+	       qtss_printf("Task::SetThreadPicker sShortTaskThreadPicker for task=%s\n", fTaskName);
+	    }
+	    else if (&Task::sBlockingTaskThreadPicker == pickerToUse)
+	    {
+	        qtss_printf("Task::SetThreadPicker sBlockingTaskThreadPicker for task=%s\n",fTaskName);
+	    }
+	    else
+	    {   qtss_printf("Task::SetThreadPicker ERROR unknown picker for task=%s\n",fTaskName);        
+	    }
+	 }
 }
 
 

@@ -50,7 +50,7 @@ public:
     ~OSHeap() { if (fHeap != NULL) delete fHeap; }
     
     //ACCESSORS
-    UInt32      CurrentHeapSize() 
+    UInt32 CurrentHeapSize() 
     { 
     	return fFreeIndex - 1;
 	}
