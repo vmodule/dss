@@ -51,16 +51,16 @@ unsigned int atomic_or(unsigned int *area, unsigned int val)
     return oldval;
 }
 
-unsigned int compare_and_store(unsigned int oval, unsigned int nval, unsigned int *area)
+//Task::kAlive, 0, &theTask->fEvents
+unsigned int compare_and_store(unsigned int oval, 
+	unsigned int nval, unsigned int *area)
 {
-   int rv;
-    OSMutexLocker locker(&sAtomicMutex);
-    if( oval == *area )
-    {
-    rv=1;
-    *area = nval;
-    }
-    else
-    rv=0;
-    return rv;
+	int rv;
+	OSMutexLocker locker(&sAtomicMutex);
+	if(oval == *area){
+		rv=1;
+		*area = nval;
+	} else
+		rv=0;
+	return rv;
 }

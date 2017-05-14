@@ -77,9 +77,11 @@ IdleTaskThread::Entry()
         SInt64 msec = OS::Milliseconds();
         
         //pop elements out of the heap as long as their timeout time has arrived
-        while ((fIdleHeap.CurrentHeapSize() > 0) && (fIdleHeap.PeekMin()->GetValue() <= msec))
+        while ((fIdleHeap.CurrentHeapSize() > 0) 
+			&& (fIdleHeap.PeekMin()->GetValue() <= msec))
         {
-            IdleTask* elem = (IdleTask*)fIdleHeap.ExtractMin()->GetEnclosingObject();
+            IdleTask* elem = 
+				(IdleTask*)fIdleHeap.ExtractMin()->GetEnclosingObject();
             Assert(elem != NULL);
             elem->Signal(Task::kIdleEvent);
         }

@@ -64,18 +64,20 @@ QTSS_ServerState StartServer(
 		sServer->InitNumThreads(numThreads);
      }
 }
+
 /**
+4.1.默认线程任务配置
 a).上述代码首先从xml文件run_num_threads字段获取用户配置的线程数量,如果为0则程序回去检测cpuinfo
 获取cpu processor,如果CPU processor大于2,则numShortTaskThreads数量将等于2,否则对于cpu processor<=2
 的默认numShortTaskThreads将等于cpu processor的数量,这有点在限制使用cpu processor的情况
-b)得到numShortTaskThreads后从xml文件中解析run_num_rtsp_threads,系统默认为1返回给numBlockingThreads
+b) 得到numShortTaskThreads后从xml文件中解析run_num_rtsp_threads,系统默认为1返回给numBlockingThreads
 c).最后求和numShortTaskThreads和numBlockingThreads得到numThreads
 d).将numShortTaskThreads保存到TaskThreadPool::sNumShortTaskThreads成员变量
 e).将numBlockingThreads保存到TaskThreadPool::sNumBlockingTaskThreads成员变量
 f).调用TaskThreadPool::AddThreads(numThreads)重头戏在这列吗?
 **/
 /**
-4.1 使用线程池创建任务线程
+4.2.使用线程池创建任务线程
 @numToAdd:numBlockingThreads+numShortTaskThreads
 **/
 Bool16 TaskThreadPool::AddThreads(UInt32 numToAdd)
@@ -104,18 +106,25 @@ Bool16 TaskThreadPool::AddThreads(UInt32 numToAdd)
 运行这些TaskThread,接下来先看看TaskThread和它的父类之间的关系
 **/
 /**
-4.2
-TaskThread和它父类OSThread的构造函数和析构函数分析
+4.3.TaskThread和它父类OSThread的构造函数和析构函数分析
 **/
 TaskThread::TaskThread()
-:OSThread(), 
-fTaskThreadPoolElem(){
+    :OSThread(), 
+    fTaskThreadPoolElem(){
+    //每一个TaskThread也对应着一个OSQueueElem
+    //这里将TaskThread保存到OSQueueElem的void*成员变量
     fTaskThreadPoolElem.SetEnclosingObject(this);
 }
+/**
+每一个TaskThread维护着一个OSQueue_Blocking队列,该队列维护着若干
+OSQueueElem,而TaskThread通过fTaskThreadPoolElem.SetEnclosingObject(this)
+函数将TaskThread指针保存到OSQueueElem的void*成员变量,方便后面获取
+**/
 
 TaskThread::~TaskThread() {
  this->StopAndWaitForThread();
 }
+
 void OSThread::Join()
 {
     // What we're trying to do is allow the thread we want to delete to complete
@@ -147,7 +156,7 @@ OSThread::~OSThread()
 }
 /*
 以上代码创建TaskThread和OSThread没做多少事情,就是对它的成员变量进行了一些初始化工作
-4.3 start taskthread 开启任务线程
+4.4.start taskthread 开启任务线程
 Start()函数定义在父类OSThread文件当中这里我们值分析Linux平台的
 */
 void OSThread::Start()
@@ -187,68 +196,248 @@ void* OSThread::_Entry(void *inThread)  //static
 的时候形成分离,OSThread::Initialize()中创建gMainKey
 */
 /**
-4.4 TaskThread线程循环
+4.5.TaskThread线程循环分析
+去掉相关的调式信息就只剩下下面的代码部分
 由C++的多态TaskThread::Entry()函数将作为taskThread的threadloop
 **/
-void TaskThread::Entry(){
+void TaskThread::Entry()
+{
     Task* theTask = NULL;
-    while (true) {
+    
+    while (true) 
+    {
         theTask = this->WaitForTask();
         //
         // WaitForTask returns NULL when it is time to quit
         if (theTask == NULL || false == theTask->Valid() )
             return;
+                    
         Bool16 doneProcessingEvent = false;
-        while (!doneProcessingEvent) {
+        while (!doneProcessingEvent)
+        {
             //If a task holds locks when it returns from its Run function,
             //that would be catastrophic and certainly lead to a deadlock
-
             theTask->fUseThisThread = NULL; // Each invocation of Run must independently
                                             // request a specific thread.
             SInt64 theTimeout = 0;
-            
-            if (theTask->fWriteLock)
-            {   
-                OSMutexWriteLocker mutexLocker(&TaskThreadPool::sMutexRW);                
+            if (theTask->fWriteLock) {   
+                OSMutexWriteLocker mutexLocker(&TaskThreadPool::sMutexRW);
                 theTimeout = theTask->Run();
                 theTask->fWriteLock = false;
-            }
-            else
-            {
+            } else {
                 OSMutexReadLocker mutexLocker(&TaskThreadPool::sMutexRW);
                 theTimeout = theTask->Run();
-            
             }
-        
-            if (theTimeout < 0)
-            {
+            if (theTimeout < 0) {//表明任务执行完毕需要删掉该任务
                 theTask->fTaskName[0] = 'D'; //mark as dead
                 delete theTask;
                 theTask = NULL;
-                doneProcessingEvent = true;
-
-            }
-            else if (theTimeout == 0)
-            {
+                doneProcessingEvent = true;//break to WaitForTask
+            }  else if (theTimeout == 0) {
                 //We want to make sure that 100% definitely the task's Run function WILL
                 //be invoked when another thread calls Signal. We also want to make sure
                 //that if an event sneaks in right as the task is returning from Run()
                 //(via Signal) that the Run function will be invoked again.
-                doneProcessingEvent = compare_and_store(Task::kAlive, 0, &theTask->fEvents);
+                doneProcessingEvent = 
+                	compare_and_store(Task::kAlive, 0, &theTask->fEvents);
+                //如果任务的状态为kAlive,则将任务状态清除成0
                 if (doneProcessingEvent)
-                    theTask = NULL; 
-            }
-            else
-            {
-                //note that if we get here, we don't reset theTask, so it will get passed into
+                    theTask = NULL; //break to WaitForTask
+                //由于队列中的任务并没有被删除掉,所以下次调度时将立即执行
+            } else {
+                //将当前时间加上theTimeout的时间插入到最小堆
+                //note that if we get here, we don't reset theTask,
+                //so it will get passed into
                 //WaitForTask
                 theTask->fTimerHeapElem.SetValue(OS::Milliseconds() + theTimeout);
                 fHeap.Insert(&theTask->fTimerHeapElem);
                 (void)atomic_or(&theTask->fEvents, Task::kIdleEvent);
                 doneProcessingEvent = true;
             }
-            this->ThreadYield();
+	        this->ThreadYield();
         }
     }
 }
+/**
+a)WaitForTask等待目标任务入队(OSQueue_Blocking fTaskQueue),在TaskThread类中
+维护了一个fTaskQueue的成员变量,该成员为一个阻塞队列,当每一个任务需要被调度时
+需要将目标Task加入到fTaskQueue当中,入队的过程主要是调用Task::Signal()函数
+b)回调派生类的Run方法,每一个任务类都是Task的子类,必须实现Run方法,该方法有三个返回值
+    b.1)返回负数,表明任务已经执行完毕
+    b.2)返回0,表明任务希望在下次被调度时立即执行
+    b.3)返回正数，表明任务希望在等待theTimeout时间后再次执行
+**/
+/**
+4.6.TaskThread::WaitForTask()等待机制
+**/
+Task* TaskThread::WaitForTask()
+{
+    while (true)
+    {
+        SInt64 theCurrentTime = OS::Milliseconds();
+        if ((fHeap.PeekMin() != NULL) && 
+			(fHeap.PeekMin()->GetValue() <= theCurrentTime))
+            return (Task*)fHeap.ExtractMin()->GetEnclosingObject();
+		
+        //if there is an element waiting for a timeout, 
+        //figure out how long we should wait.
+        SInt64 theTimeout = 0;
+        if (fHeap.PeekMin() != NULL)
+            theTimeout = fHeap.PeekMin()->GetValue() - theCurrentTime;
+        Assert(theTimeout >= 0);
+        //
+        // Make sure we can't go to sleep for some ridiculously short
+        // period of time
+        // Do not allow a timeout below 10 ms without first verifying reliable udp 1-2mbit live streams. 
+        // Test with streamingserver.xml pref reliablUDP printfs enabled and look 
+        // for packet loss and check client for  buffer ahead recovery.
+	    if (theTimeout < 10) 
+           theTimeout = 10;
+            
+        //wait...
+        OSQueueElem* theElem = 
+        	fTaskQueue.DeQueueBlocking(this, 
+        		(SInt32) theTimeout);
+        if (theElem != NULL) 
+            return (Task*)theElem->GetEnclosingObject();
+        //
+        // If we are supposed to stop, return NULL, which signals the caller to stop
+        if (OSThread::GetCurrent()->IsStopRequested())
+            return NULL;
+    }   
+}
+/**
+在TaskThread中维护了一个fHeap的数据结构它的类型是OSHeap,是一颗最小二叉树
+从上述代码中应该是维护时间戳,同时还维护了一个fTaskQueue的阻塞队列,所有的Task
+都将进入该队列
+a).调用fHeap.PeekMin()判断fHeap最小堆上是否有数据,如果有数据则表示有任务被插入
+然后使用fHeap.PeekMin()->GetValue()取出最小堆对应的数据和当前时间戳进行比较
+在4.5中当Run函数返回值等于0的情况正好会<= theCurrentTime直接将任务取出返回
+b).有任务,但是还没到执行的时间,则使用theTimeout = fHeap.PeekMin()->GetValue() 
+    - theCurrentTime;计算多少秒后才执行任务,如4.5中当Run函数返回值>0的情况,假设
+    Run()返回值为5,如果theTimeout<=10,则自动设成10s后再执行
+c).调用fTaskQueue.DeQueueBlocking延时等待.时间到后将Task指针返回.
+**/
+/**
+4.7.认识Task类
+**/
+class Task
+{
+public:
+    typedef unsigned int EventFlags;
+    enum
+    {
+        kKillEvent =    0x1 << 0x0, //these are all of type "EventFlags"
+        kIdleEvent =    0x1 << 0x1,
+        kStartEvent =   0x1 << 0x2,
+        kTimeoutEvent = 0x1 << 0x3,
+   
+      //socket events
+        kReadEvent =        0x1 << 0x4, //All of type "EventFlags"
+        kWriteEvent =       0x1 << 0x5,
+       
+       //update event
+        kUpdateEvent =      0x1 << 0x6
+    };
+	Task();
+	virtual ~Task() {}
+	/**
+    return:
+    >0 :invoke me after this number of MilSecs with a kIdleEvent
+     0 :don't reinvoke me at all.
+    -1 :delete me
+    Suggested practice is that any task should be deleted by returning true from the
+    Run function. That way, we know that the Task is not running at the time it is
+    deleted. This object provides no protection against calling a method, such as Signal,
+    at the same time the object is being deleted (because it can't really), so watch
+    those dangling references!
+    */
+    virtual SInt64  Run() = 0;
+    
+    //Send an event to this task.
+    void  Signal(EventFlags eventFlags);
+private:
+    enum
+    {
+        kAlive =            0x80000000, //EventFlags, again
+        kAliveOff =         0x7fffffff
+    };
+    EventFlags      fEvents;
+    TaskThread*     fUseThisThread;
+    TaskThread*     fDefaultThread;
+    Bool16          fWriteLock;    
+    //This could later be optimized by using a timing wheel instead of a heap,
+    //and that way we wouldn't need both a heap elem and a queue elem here (just queue elem)
+    OSHeapElem      fTimerHeapElem;
+    OSQueueElem     fTaskQueueElem;
+    
+    unsigned int *pickerToUse;
+    //Variable used for assigning tasks to threads in a round-robin fashion
+    static unsigned int sShortTaskThreadPicker; //default picker
+    static unsigned int sBlockingTaskThreadPicker;
+};
+unsigned int Task::sShortTaskThreadPicker = 0;
+unsigned int Task::sBlockingTaskThreadPicker = 0;
+Task::Task()
+: fEvents(0)//init task status to 0
+, fUseThisThread(NULL)
+, fDefaultThread(NULL)
+, fWriteLock(false)
+, fTimerHeapElem()
+, fTaskQueueElem()
+, pickerToUse(&Task::sShortTaskThreadPicker) {
+	this->SetTaskName("unknown");
+	//default pickerToUse point to sShortTaskThreadPicker
+	fTaskQueueElem.SetEnclosingObject(this);
+	fTimerHeapElem.SetEnclosingObject(this);
+}
+/**
+Task类维护了两个重要的成员fTaskQueueElem和fTimerHeapElem,其中
+fTaskQueueElem是任务队列的元素,而fTimerHeapElem是超时执行任务最小
+堆的元素,这也说明了每一个Task任务都是TaskThread::fHeap和
+TaskThread::fTaskQueue的一部分,另外Task::pickerToUse用来指派任务
+从TaskThreadPool::sTaskThreadArray数组中的那个元素用来调度
+**/
+void Task::Signal(EventFlags events)
+{
+    if (!this->Valid())
+        return;  
+    //Fancy no mutex implementation. We atomically mask the new events into
+    //the event mask. Because atomic_or returns the old state of the mask,
+    //we only schedule this task once.
+    events |= kAlive;
+    EventFlags oldEvents = atomic_or(&fEvents, events);
+    if ((!(oldEvents & kAlive)) && 
+		(TaskThreadPool::sNumTaskThreads > 0)) {//default was not
+        if (fDefaultThread != NULL 
+			&& fUseThisThread == NULL)
+            fUseThisThread = fDefaultThread;
+        if (fUseThisThread != NULL){
+            // Task needs to be placed on a particular thread.    
+            fUseThisThread->fTaskQueue.EnQueue(&fTaskQueueElem);
+        } else {//default here....
+            //find a thread to put this task on
+            unsigned int theThreadIndex = 
+            	atomic_add((unsigned int *) pickerToUse, 1);
+            //theThreadIndex = 1;
+            if (&Task::sShortTaskThreadPicker == pickerToUse) {
+                theThreadIndex %= TaskThreadPool::sNumShortTaskThreads;
+            } else if (&Task::sBlockingTaskThreadPicker == pickerToUse) {
+                theThreadIndex %= TaskThreadPool::sNumBlockingTaskThreads;
+				//don't pick from lower non-blocking (short task) threads.
+                theThreadIndex += TaskThreadPool::sNumShortTaskThreads; 
+            } else {  
+                return;
+            }
+            TaskThreadPool::sTaskThreadArray[theThreadIndex]->fTaskQueue.EnQueue(&fTaskQueueElem);
+        }
+    }
+}
+/**
+pickerToUse默认被指向了Task::sShortTaskThreadPicker对应的内存,所以使用
+theThreadIndex %= TaskThreadPool::sNumShortTaskThreads;
+sNumShortTaskThreads的值依赖与配置文件中的run_num_threads,这里将环形从
+TaskThreadPool::sTaskThreadArray中取出线程,然后调用fTaskQueue.EnQueue(&fTaskQueueElem)
+将唤醒WaitForTask函数..
+**/
 

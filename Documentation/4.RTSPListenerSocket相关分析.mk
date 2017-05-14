@@ -153,7 +153,7 @@ public:
     // EventContext object "owns" the file descriptor, and will close it
     // when Cleanup is called. This is necessary because of some weird
     // select() behavior. DON'T CALL CLOSE ON THE FD ONCE THIS IS CALLED!!!!
-    void            InitNonBlocking(int inFileDesc);
+    void  InitNonBlocking(int inFileDesc);
 };    
 
 EventContext::EventContext(int inFileDesc, EventThread* inThread)

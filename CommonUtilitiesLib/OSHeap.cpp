@@ -80,7 +80,7 @@ void OSHeap::Insert(OSHeapElem* inElem)
     {
         //move up the chain until we get to the root, bubbling this new element
         //to its proper place in the tree
-        UInt32 nextSwapPos = swapPos >> 1;
+        UInt32 nextSwapPos = swapPos >> 1;//get the parent jiedian
         
         //if this child is greater than it's parent, we need to do the old
         //switcheroo

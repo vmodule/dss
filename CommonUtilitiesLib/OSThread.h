@@ -56,46 +56,46 @@ class OSThread
 {
 
 public:
-                //
-                // Call before calling any other OSThread function
-                static void     Initialize();
-                
-                                OSThread();
-    virtual                     ~OSThread();
+    //
+    // Call before calling any other OSThread function
+    static void     Initialize();
+    
+                    OSThread();
+    virtual         ~OSThread();
     
     //
     // Derived classes must implement their own entry function
-    virtual     void            Entry() = 0;
-                void            Start();
-                
-                static void     ThreadYield();
-                static void     Sleep(UInt32 inMsec);
-                
-                void            Join();
-                void            SendStopRequest() { fStopRequested = true; }
-                Bool16          IsStopRequested() { return fStopRequested; }
-                void            StopAndWaitForThread();
+    virtual void    Entry() = 0;
+    void            Start();
+    
+    static void     ThreadYield();
+    static void     Sleep(UInt32 inMsec);
+    
+    void            Join();
+    void            SendStopRequest() { fStopRequested = true; }
+    Bool16          IsStopRequested() { return fStopRequested; }
+    void            StopAndWaitForThread();
 
-                void*           GetThreadData()         { return fThreadData; }
-                void            SetThreadData(void* inThreadData) { fThreadData = inThreadData; }
-                
-                // As a convienence to higher levels, each thread has its own date buffer
-                DateBuffer*     GetDateBuffer()         { return &fDateBuffer; }
-                
-                static void*    GetMainThreadData()     { return sMainThreadData; }
-                static void     SetMainThreadData(void* inData) { sMainThreadData = inData; }
-                static void     SetUser(char *user) {::strncpy(sUser,user, sizeof(sUser) -1); sUser[sizeof(sUser) -1]=0;} 
-                static void     SetGroup(char *group) {::strncpy(sGroup,group, sizeof(sGroup) -1); sGroup[sizeof(sGroup) -1]=0;} 
-                static void     SetPersonality(char *user, char* group) { SetUser(user); SetGroup(group); };
-                Bool16          SwitchPersonality();
+    void*           GetThreadData()         { return fThreadData; }
+    void            SetThreadData(void* inThreadData) { fThreadData = inThreadData; }
+    
+    // As a convienence to higher levels, each thread has its own date buffer
+    DateBuffer*     GetDateBuffer()         { return &fDateBuffer; }
+    
+    static void*    GetMainThreadData()     { return sMainThreadData; }
+    static void     SetMainThreadData(void* inData) { sMainThreadData = inData; }
+    static void     SetUser(char *user) {::strncpy(sUser,user, sizeof(sUser) -1); sUser[sizeof(sUser) -1]=0;} 
+    static void     SetGroup(char *group) {::strncpy(sGroup,group, sizeof(sGroup) -1); sGroup[sizeof(sGroup) -1]=0;} 
+    static void     SetPersonality(char *user, char* group) { SetUser(user); SetGroup(group); };
+    Bool16          SwitchPersonality();
 #if DEBUG
-                UInt32          GetNumLocksHeld() { return 0; }
-                void            IncrementLocksHeld() {}
-                void            DecrementLocksHeld() {}
+    UInt32          GetNumLocksHeld() { return 0; }
+    void            IncrementLocksHeld() {}
+    void            DecrementLocksHeld() {}
 #endif
 
 #if __linux__ ||  __MacOSX__
-                static void     WrapSleep( Bool16 wrapSleep) {sWrapSleep = wrapSleep; }
+    static void     WrapSleep( Bool16 wrapSleep) {sWrapSleep = wrapSleep; }
 #endif
 
 #ifdef __Win32__

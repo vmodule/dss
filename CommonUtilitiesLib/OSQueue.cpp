@@ -45,6 +45,7 @@ void OSQueue::EnQueue(OSQueueElem* elem)
     if (elem->fQueue == this)
         return;
     Assert(elem->fQueue == NULL);
+
     elem->fNext = fSentinel.fNext;
     elem->fPrev = &fSentinel;
     elem->fQueue = this;
@@ -55,10 +56,26 @@ void OSQueue::EnQueue(OSQueueElem* elem)
 
 OSQueueElem* OSQueue::DeQueue()
 {
+#if 0
+	if(fLength <= 0)
+		return NULL;
+	//1.get the last element.
+	OSQueueElem* lastelem = fSentinel.fPrev;
+	Assert(fSentinel.fPrev != &fSentinel);
+	//2.get the lastelem of prev element.
+	OSQueueElem* lastelemOfPrev = lastelem->fPrev;
+	//3.let the lastelemOfPrev->next connect to fSentinel
+	lastelemOfPrev->fNext = &fSentinel;
+	//4.let the fSentinel->fPrev connect to lastelemOfPrev
+	fSentinel->fPrev = lastelemOfPrev;
+	lastelem->fQueue = NULL;
+	fLength--;
+	return lastelem;
+#else	
     if (fLength > 0)
     {
-        OSQueueElem* elem = fSentinel.fPrev;
-        Assert(fSentinel.fPrev != &fSentinel);
+        OSQueueElem* elem = fSentinel.fPrev;//get the last element
+        Assert(fSentinel.fPrev != &fSentinel);//check the element if equals header
         elem->fPrev->fNext = &fSentinel;
         fSentinel.fPrev = elem->fPrev;
         elem->fQueue = NULL;
@@ -67,6 +84,7 @@ OSQueueElem* OSQueue::DeQueue()
     }
     else
         return NULL;
+#endif	
 }
 
 void OSQueue::Remove(OSQueueElem* elem)
@@ -220,14 +238,15 @@ Bool16 OSQueue::Test()
 
 void OSQueueIter::Next()
 {
-    if (fCurrentElemP == fQueueP->GetTail())
-        fCurrentElemP = NULL;
-    else
-        fCurrentElemP = fCurrentElemP->Prev();
+	if (fCurrentElemP == fQueueP->GetTail())
+		fCurrentElemP = NULL;
+	else
+		fCurrentElemP = fCurrentElemP->Prev();
 }
 
 
-OSQueueElem* OSQueue_Blocking::DeQueueBlocking(OSThread* inCurThread, SInt32 inTimeoutInMilSecs)
+OSQueueElem* OSQueue_Blocking::DeQueueBlocking(OSThread* inCurThread, 
+	SInt32 inTimeoutInMilSecs)
 {
     OSMutexLocker theLocker(&fMutex);
 #ifdef __Win32_
@@ -244,7 +263,7 @@ OSQueueElem* OSQueue_Blocking::DeQueueBlocking(OSThread* inCurThread, SInt32 inT
     return retval;
 }
 
-OSQueueElem*    OSQueue_Blocking::DeQueue()
+OSQueueElem* OSQueue_Blocking::DeQueue()
 {
     OSMutexLocker theLocker(&fMutex);
     OSQueueElem* retval = fQueue.DeQueue(); 

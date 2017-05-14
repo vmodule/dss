@@ -71,11 +71,16 @@ class IdleTask : public Task
 {
 
 public:
-
     //Call Initialize before using this class
     static void Initialize();
     
-    IdleTask() : Task(), fIdleElem() { this->SetTaskName("IdleTask"); fIdleElem.SetEnclosingObject(this); }
+    IdleTask() 
+		: Task()
+		, fIdleElem() 
+	{ 
+		this->SetTaskName("IdleTask");
+		fIdleElem.SetEnclosingObject(this);
+	}
     
     //This object does a "best effort" of making sure a timeout isn't
     //pending for an object being deleted. In other words, if there is

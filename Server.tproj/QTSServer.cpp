@@ -94,32 +94,32 @@
 
 class RTSPListenerSocket : public TCPListenerSocket
 {
-    public:
+public:
+
+    RTSPListenerSocket() {}
+    virtual ~RTSPListenerSocket() {}
     
-        RTSPListenerSocket() {}
-        virtual ~RTSPListenerSocket() {}
-        
-        //sole job of this object is to implement this function
-        virtual Task*   GetSessionTask(TCPSocket** outSocket);
-        
-        //check whether the Listener should be idling
-        Bool16 OverMaxConnections(UInt32 buffer);
+    //sole job of this object is to implement this function
+    virtual Task*   GetSessionTask(TCPSocket** outSocket);
+    
+    //check whether the Listener should be idling
+    Bool16 OverMaxConnections(UInt32 buffer);
 
 };
 
 class RTPSocketPool : public UDPSocketPool
 {
-    public:
-    
-        // Pool of UDP sockets for use by the RTP server
-        
-        RTPSocketPool() {}
-        ~RTPSocketPool() {}
-        
-        virtual UDPSocketPair*  ConstructUDPSocketPair();
-        virtual void            DestructUDPSocketPair(UDPSocketPair* inPair);
+public:
 
-        virtual void            SetUDPSocketOptions(UDPSocketPair* inPair);
+    // Pool of UDP sockets for use by the RTP server
+    
+    RTPSocketPool() {}
+    ~RTPSocketPool() {}
+    
+    virtual UDPSocketPair*  ConstructUDPSocketPair();
+    virtual void            DestructUDPSocketPair(UDPSocketPair* inPair);
+
+    virtual void            SetUDPSocketOptions(UDPSocketPair* inPair);
 };
 
 
@@ -161,7 +161,9 @@ QTSServer::~QTSServer()
     delete fSrvrPrefs;
 }
 
-Bool16 QTSServer::Initialize(XMLPrefsParser* inPrefsSource, PrefsSource* inMessagesSource, UInt16 inPortOverride, Bool16 createListeners)
+Bool16 QTSServer::Initialize(
+	XMLPrefsParser* inPrefsSource, PrefsSource* inMessagesSource, 
+	UInt16 inPortOverride, Bool16 createListeners)
 {
     static const UInt32 kRTPSessionMapSize = 577;
     fServerState = qtssFatalErrorState;
@@ -197,7 +199,8 @@ Bool16 QTSServer::Initialize(XMLPrefsParser* inPrefsSource, PrefsSource* inMessa
     
     fSrvrPrefs = new QTSServerPrefs(inPrefsSource, false); // First time, don't write changes to the prefs file
     fSrvrMessages = new QTSSMessages(inMessagesSource);
-    QTSSModuleUtils::Initialize(fSrvrMessages, this, QTSServerInterface::GetErrorLogStream());
+    QTSSModuleUtils::Initialize(fSrvrMessages, this, 
+		QTSServerInterface::GetErrorLogStream());
 
     //
     // SETUP ASSERT BEHAVIOR
@@ -235,12 +238,14 @@ Bool16 QTSServer::Initialize(XMLPrefsParser* inPrefsSource, PrefsSource* inMessa
     if (createListeners)
     {
         if ( !this->CreateListeners(false, fSrvrPrefs, inPortOverride) )
-            QTSSModuleUtils::LogError(qtssWarningVerbosity, qtssMsgSomePortsFailed, 0);
+            QTSSModuleUtils::LogError(qtssWarningVerbosity, 
+            	qtssMsgSomePortsFailed, 0);
     }
     
     if ( fNumListeners == 0 )
     {   if (createListeners)
-            QTSSModuleUtils::LogError(qtssWarningVerbosity, qtssMsgNoPortsSucceeded, 0);
+            QTSSModuleUtils::LogError(qtssWarningVerbosity, 
+            	qtssMsgNoPortsSucceeded, 0);
         return false;
     }
 
@@ -302,7 +307,6 @@ void QTSServer::StartTasks()
 {
     fRTCPTask = new RTCPTask();
     fStatsTask = new RTPStatsUpdaterTask();
-
     //
     // Start listening
     for (UInt32 x = 0; x < fNumListeners; x++)

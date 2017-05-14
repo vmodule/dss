@@ -45,7 +45,6 @@ void TimeoutTask::Initialize()
     
 }
 
-
 TimeoutTask::TimeoutTask(Task* inTask, SInt64 inTimeoutInMilSecs)
 : fTask(inTask), fQueueElem()
 {
@@ -84,23 +83,29 @@ SInt64 TimeoutTaskThread::Run()
 	
     for (OSQueueIter iter(&fQueue); !iter.IsDone(); iter.Next())
     {
-        TimeoutTask* theTimeoutTask = (TimeoutTask*)iter.GetCurrent()->GetEnclosingObject();
+        TimeoutTask* theTimeoutTask = 
+			(TimeoutTask*)iter.GetCurrent()->GetEnclosingObject();
         
         //if it's time to time this task out, signal it
-        if ((theTimeoutTask->fTimeoutAtThisTime > 0) && (curTime >= theTimeoutTask->fTimeoutAtThisTime))
+        if ((theTimeoutTask->fTimeoutAtThisTime > 0) && 
+			(curTime >= theTimeoutTask->fTimeoutAtThisTime))
         {
 #if TIMEOUT_DEBUGGING
-            qtss_printf("TimeoutTask %"_S32BITARG_" timed out. Curtime = %"_64BITARG_"d, timeout time = %"_64BITARG_"d\n",(SInt32)theTimeoutTask, curTime, theTimeoutTask->fTimeoutAtThisTime);
+            qtss_printf("TimeoutTask %"_S32BITARG_" timed out. Curtime = %"_64BITARG_"d, timeout time = %"_64BITARG_"d\n",
+            	(SInt32)theTimeoutTask, curTime, theTimeoutTask->fTimeoutAtThisTime);
 #endif
 			theTimeoutTask->fTask->Signal(Task::kTimeoutEvent);
 		}
 		else
 		{
 			taskInterval = theTimeoutTask->fTimeoutAtThisTime - curTime;
-			if ( (taskInterval > 0) && (theTimeoutTask->fTimeoutInMilSecs > 0) && (intervalMilli > taskInterval) )
+			if ( (taskInterval > 0) && 
+				(theTimeoutTask->fTimeoutInMilSecs > 0) && 
+				(intervalMilli > taskInterval) )
 				intervalMilli = taskInterval + 1000; // set timeout to 1 second past this task's timeout
 #if TIMEOUT_DEBUGGING
-			qtss_printf("TimeoutTask %"_S32BITARG_" not being timed out. Curtime = %"_64BITARG_"d. timeout time = %"_64BITARG_"d\n", (SInt32)theTimeoutTask, curTime, theTimeoutTask->fTimeoutAtThisTime);
+			qtss_printf("TimeoutTask %"_S32BITARG_" not being timed out. Curtime = %"_64BITARG_"d. timeout time = %"_64BITARG_"d\n",
+			(SInt32)theTimeoutTask, curTime, theTimeoutTask->fTimeoutAtThisTime);
 #endif
 		}
 	}
