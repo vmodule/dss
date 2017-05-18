@@ -92,18 +92,18 @@ EventThread::Entry()函数,去掉相关调式信息和无用信息它的实现�
 void EventThread::Entry()
 {
     struct eventreq theCurrentEvent;
-    ::memset( &theCurrentEvent, '\0', sizeof(theCurrentEvent) );
+    ::memset(&theCurrentEvent, '\0', sizeof(theCurrentEvent) );
     while (true)
     {
         int theErrno = EINTR;
         while (theErrno == EINTR)
-        {//如果超时返回则继续进行等待
+        { //如果超时返回则继续进行等待
             int theReturnValue = select_waitevent(&theCurrentEvent, NULL);
             //Sort of a hack. In the POSIX version of the server, waitevent can return
             //an actual POSIX errorcode.
-            if (theReturnValue >= 0)
+            if (theReturnValue >= 0)//如果等待成功将会为我们初始化一个eventreq
                 theErrno = theReturnValue;
-            else
+            else //如果超时则继续走while循环继续等待事件来临
                 theErrno = OSThread::GetErrno();
         }
         AssertV(theErrno == 0, theErrno);
@@ -124,57 +124,13 @@ void EventThread::Entry()
         }
     }
 }
-
 /**
-7.3.select_watchevent将文件句柄加入到相应的监听集合当中
+该函数首先调用select_waitevent进行阻塞等待事件,如果没有事件,将一直等待在此
+如果有事件发生,将会为我们初始化eventreq,然后通过fRefTable
 **/
-int select_watchevent(struct eventreq *req, int which)
-{
-    return select_modwatch(req, which);
-}
 
-int select_modwatch(struct eventreq *req, int which)
-{
-    {
-        //Manipulating sMaxFDPos is not pre-emptive safe, so we have to wrap it in a mutex
-        //I believe this is the only variable that is not preemptive safe....
-        OSMutexLocker locker(&sMaxFDPosMutex);
-
-        //Add or remove this fd from the specified sets
-        if (which & EV_RE)
-            FD_SET(req->er_handle, &sReadSet);
-        else
-            FD_CLR(req->er_handle, &sReadSet);
-
-        if (which & EV_WR)
-            FD_SET(req->er_handle, &sWriteSet);
-        else
-            FD_CLR(req->er_handle, &sWriteSet);
-
-        //当要加入到select文件句柄描述符大于sMaxFDPos的时候
-        //需要修改sMaxFDPos的值
-        if (req->er_handle > sMaxFDPos)
-            sMaxFDPos = req->er_handle;
-
-        //
-        // Also, modifying the cookie is not preemptive safe. This must be
-        // done atomically wrt setting the fd in the set. Otherwise, it is
-        // possible to have a NULL cookie on a fd.
-        Assert(req->er_handle < (int)(sizeof(fd_set) * 8));
-        Assert(req->er_data != NULL);
-        //每一个文件句柄对应的void *data保存到sCookieArray数组
-        //并且使用文件句柄作为索引,方便以后查找
-        sCookieArray[req->er_handle] = req->er_data;
-    }    
-    //write to the pipe so that select wakes up and registers the new mask
-    //唤醒select函数表示pipe可读取
-    int theErr = ::write(sPipes[1], "p", 1);
-    Assert(theErr == 1);
-
-    return 0;
-}
 /**
-7.4.select_waitevent时间等待机制
+7.3.select_waitevent时间等待机制
 **/
 int select_waitevent(struct eventreq *req, void* /*onlyForMacOSX*/)
 {
@@ -258,7 +214,9 @@ int select_waitevent(struct eventreq *req, void* /*onlyForMacOSX*/)
         //程序第一次执行会走这里,将sReturnedReadSet,sReturnedWriteSet加入到
         //select,sNumFDsBackFromSelect当被监听文件集合满足监听条件的文件数总和
         //当返回0时表示超时
-        //所以程序第一次执行到select函数将等待sPipes[0]文件句柄被写,当
+        //所以程序第一次执行到select函数将等待sPipes[0]文件句柄被写
+		//sNumFDsBackFromSelect返回满足条件的文件数之和sReturnedReadSet中可读的总数+sReturnedWriteSet
+		//中可写的总数
     }
     //程序第一次执行,当没有往读写集合中添加文件句柄的时候,会超时返回
     //不过事实上当select函数被调用时马上会将socket服务端口文件句柄加入到sReadSet
@@ -268,7 +226,12 @@ int select_waitevent(struct eventreq *req, void* /*onlyForMacOSX*/)
                         //to call waitevent again.
     return sNumFDsBackFromSelect;
 }
-
+/**
+在EventThread::Entry()函数中调用select_waitevent函数进行等待,程序第一次来将调用select函数对sPipes[0]
+进行超时监听,程序第一次来一直阻塞在select函数处,假设此时有客户端连接进来将会触发select函数可读事件
+此时sNumFDsBackFromSelect的值将大于0并且select函数将返回,由于select函数在while(!selecthasdata())中执行
+所以当select函数返回的时候将进入selecthasdata函数,它的定义如下
+**/
 bool selecthasdata()
 {
     //sNumFDsBackFromSelect<0表示select监听失败
@@ -289,6 +252,7 @@ bool selecthasdata()
         return false;//if select returns 0, we've simply timed out, so recall select
     
     //如果sPipes[0]在sReturnedReadSet集合当中,首次执行完毕后该条件成立
+	//当select函数成功返回的时候该分支将执行,
     if (FD_ISSET(sPipes[0], &sReturnedReadSet))
     {
         //we've gotten data on the pipe file descriptor. Clear the data.
@@ -323,6 +287,55 @@ bool selecthasdata()
         return true;
 }
 
+
+/**
+7.3.select_watchevent将文件句柄加入到相应的监听集合当中
+**/
+int select_watchevent(struct eventreq *req, int which)
+{
+    return select_modwatch(req, which);
+}
+
+int select_modwatch(struct eventreq *req, int which)
+{
+    {
+        //Manipulating sMaxFDPos is not pre-emptive safe, so we have to wrap it in a mutex
+        //I believe this is the only variable that is not preemptive safe....
+        OSMutexLocker locker(&sMaxFDPosMutex);
+
+        //Add or remove this fd from the specified sets
+        if (which & EV_RE)
+            FD_SET(req->er_handle, &sReadSet);
+        else
+            FD_CLR(req->er_handle, &sReadSet);
+
+        if (which & EV_WR)
+            FD_SET(req->er_handle, &sWriteSet);
+        else
+            FD_CLR(req->er_handle, &sWriteSet);
+
+        //当要加入到select文件句柄描述符大于sMaxFDPos的时候
+        //需要修改sMaxFDPos的值
+        if (req->er_handle > sMaxFDPos)
+            sMaxFDPos = req->er_handle;
+
+        //
+        // Also, modifying the cookie is not preemptive safe. This must be
+        // done atomically wrt setting the fd in the set. Otherwise, it is
+        // possible to have a NULL cookie on a fd.
+        Assert(req->er_handle < (int)(sizeof(fd_set) * 8));
+        Assert(req->er_data != NULL);
+        //每一个文件句柄对应的void *data保存到sCookieArray数组
+        //并且使用文件句柄作为索引,方便以后查找
+        sCookieArray[req->er_handle] = req->er_data;
+    }    
+    //write to the pipe so that select wakes up and registers the new mask
+    //唤醒select函数表示pipe可读取
+    int theErr = ::write(sPipes[1], "p", 1);
+    Assert(theErr == 1);
+
+    return 0;
+}
 
 int constructeventreq(struct eventreq* req, int fd, int event)
 {

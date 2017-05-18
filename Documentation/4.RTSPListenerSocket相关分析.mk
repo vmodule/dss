@@ -2,7 +2,6 @@
 运行事件监听机制,DSS对每一个IP地址对应的不同的端口号都将创建一个RTSPListenerSocket
 实例
 **/
-
 /**
  4.1.RTSPListenerSocket对象的创建
 RTSPListenerSocket和Socket的类之间的关系请见
@@ -13,10 +12,6 @@ class RTSPListenerSocket : public TCPListenerSocket
 public:
     RTSPListenerSocket() {}
     virtual ~RTSPListenerSocket() {}
-    //sole job of this object is to implement this function
-    virtual Task*   GetSessionTask(TCPSocket** outSocket);
-    //check whether the Listener should be idling
-    Bool16 OverMaxConnections(UInt32 buffer);
 };
 
 class TCPListenerSocket : public TCPSocket, public IdleTask

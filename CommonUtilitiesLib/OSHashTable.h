@@ -47,7 +47,7 @@ Will the hash table can contain duplicate keys, the Map function will return onl
 template<class T, class K>
 class OSHashTable {
 public:
-    OSHashTable( UInt32 size )
+    OSHashTable(UInt32 size)
     {
         fHashTable = new ( T*[size] );
         Assert( fHashTable );
