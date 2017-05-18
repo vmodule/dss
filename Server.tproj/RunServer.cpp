@@ -108,7 +108,8 @@ QTSS_ServerState StartServer(
     if (qtssShuttingDownState == inInitialState) 
         createListeners = false;
     
-    sServer->Initialize(inPrefsSource, inMessagesSource, inPortOverride,createListeners);
+    sServer->Initialize(inPrefsSource, inMessagesSource,
+		inPortOverride,createListeners);
 
     if (inInitialState == qtssShuttingDownState)
     {  
@@ -126,7 +127,6 @@ QTSS_ServerState StartServer(
         UInt32 numBlockingThreads = 0;
         UInt32 numThreads = 0;
         UInt32 numProcessors = 0;
-        
         if (OS::ThreadSafe())
         {
             numShortTaskThreads = sServer->GetPrefs()->GetNumThreads(); // whatever the prefs say
@@ -142,7 +142,8 @@ QTSS_ServerState StartServer(
                     numShortTaskThreads = numProcessors;
             }
 
-            numBlockingThreads = sServer->GetPrefs()->GetNumBlockingThreads(); // whatever the prefs say
+            numBlockingThreads = 
+				sServer->GetPrefs()->GetNumBlockingThreads(); // whatever the prefs say
             if (numBlockingThreads == 0)
                 numBlockingThreads = 1;
                 
