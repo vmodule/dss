@@ -42,7 +42,6 @@ void TimeoutTask::Initialize()
         sThread = NEW TimeoutTaskThread();
         sThread->Signal(Task::kStartEvent);
     }
-    
 }
 
 TimeoutTask::TimeoutTask(Task* inTask, SInt64 inTimeoutInMilSecs)
@@ -95,9 +94,7 @@ SInt64 TimeoutTaskThread::Run()
             	(SInt32)theTimeoutTask, curTime, theTimeoutTask->fTimeoutAtThisTime);
 #endif
 			theTimeoutTask->fTask->Signal(Task::kTimeoutEvent);
-		}
-		else
-		{
+		} else {
 			taskInterval = theTimeoutTask->fTimeoutAtThisTime - curTime;
 			if ( (taskInterval > 0) && 
 				(theTimeoutTask->fTimeoutInMilSecs > 0) && 

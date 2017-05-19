@@ -10,7 +10,7 @@
  * compliance with the License. Please obtain a copy of the License at
  * http://www.opensource.apple.com/apsl/ and read it before using this
  * file.
- * 
+ *
  * The Original Code and all software distributed under the License are
  * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
  * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -18,7 +18,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
  * Please see the License for the specific language governing rights and
  * limitations under the License.
- * 
+ *
  * @APPLE_LICENSE_HEADER_END@
  *
  */
@@ -27,51 +27,46 @@
 #define OSHeaders_H
 #include <limits.h>
 
-
-
 #ifndef TRUE
-    #define TRUE 1
+#define TRUE 1
 #endif
 
 #ifndef FALSE
-    #define FALSE 0
+#define FALSE 0
 #endif
-
-
 
 /* Platform-specific components */
 #if __MacOSX__
-    
-    /* Defines */
-    #define _64BITARG_ "ll"
-    #define _S64BITARG_ "lld"
-    #define _U64BITARG_ "llu"
-    
+
+/* Defines */
+#define _64BITARG_ "ll"
+#define _S64BITARG_ "lld"
+#define _U64BITARG_ "llu"
+
 #if __LP64__
-	#define _S32BITARG_ "d"
-	#define _U32BITARG_ "u"
-        #define _SPOINTERSIZEARG_ _S64BITARG_
-        #define _UPOINTERSIZEARG_ _U64BITARG_
+#define _S32BITARG_ "d"
+#define _U32BITARG_ "u"
+#define _SPOINTERSIZEARG_ _S64BITARG_
+#define _UPOINTERSIZEARG_ _U64BITARG_
 #else
-	#define _S32BITARG_ "ld"
-	#define _U32BITARG_ "lu"
-        #define _SPOINTERSIZEARG_ _S32BITARG_
-        #define _UPOINTERSIZEARG_ _U32BITARG_
+#define _S32BITARG_ "ld"
+#define _U32BITARG_ "lu"
+#define _SPOINTERSIZEARG_ _S32BITARG_
+#define _UPOINTERSIZEARG_ _U32BITARG_
 #endif
 
-    /* paths */
-    #define kEOLString "\n"
-    #define kPathDelimiterString "/"
-    #define kPathDelimiterChar '/'
-    #define kPartialPathBeginsWithDelimiter 0
+/* paths */
+#define kEOLString "\n"
+#define kPathDelimiterString "/"
+#define kPathDelimiterChar '/'
+#define kPartialPathBeginsWithDelimiter 0
 
-    /* Includes */
-    #include <sys/types.h>
-    
-    /* Constants */
-    #define QT_TIME_TO_LOCAL_TIME   (-2082844800)
-    #define QT_PATH_SEPARATOR       '/'
+/* Includes */
+#include <sys/types.h>
 
+/* Constants */
+#define QT_TIME_TO_LOCAL_TIME   (-2082844800)
+#define QT_PATH_SEPARATOR       '/'
 
 #include "/System/Library/Frameworks/CoreServices.framework/Headers/../Frameworks/CarbonCore.framework/Headers/MacTypes.h"
 
@@ -85,472 +80,464 @@
 #define kUInt64_Max (UInt64) ULONG_LONG_MAX
 
 #if 0 // old defs we are now using MacTypes.h
-    /* Typedefs */
-    typedef unsigned char       UInt8;
-    typedef signed char         SInt8;
-    typedef unsigned short      UInt16;
-    typedef signed short        SInt16;
-    typedef unsigned int        UInt32;
-    typedef signed int          SInt32;
-    typedef signed long long	SInt64;
-    typedef unsigned long long	UInt64;
-    typedef float               Float32;
-    typedef double              Float64;
-    typedef UInt32              FourCharCode;
-    typedef FourCharCode        OSType;
+/* Typedefs */
+typedef unsigned char UInt8;
+typedef signed char SInt8;
+typedef unsigned short UInt16;
+typedef signed short SInt16;
+typedef unsigned int UInt32;
+typedef signed int SInt32;
+typedef signed long long SInt64;
+typedef unsigned long long UInt64;
+typedef float Float32;
+typedef double Float64;
+typedef UInt32 FourCharCode;
+typedef FourCharCode OSType;
 #endif
-    
-    typedef signed long		    PointerSizedInt;
-    typedef unsigned long       PointerSizedUInt;
-    typedef UInt16              Bool16;
-    typedef UInt8               Bool8;
-    
 
-    #ifdef  FOUR_CHARS_TO_INT
-    #error Conflicting Macro "FOUR_CHARS_TO_INT"
-    #endif
+typedef signed long PointerSizedInt;
+typedef unsigned long PointerSizedUInt;
+typedef UInt16 Bool16;
+typedef UInt8 Bool8;
 
-    #define FOUR_CHARS_TO_INT( c1, c2, c3, c4 )  ( c1 << 24 | c2 << 16 | c3 << 8 | c4 )
+#ifdef  FOUR_CHARS_TO_INT
+#error Conflicting Macro "FOUR_CHARS_TO_INT"
+#endif
 
-    #ifdef  TW0_CHARS_TO_INT
-    #error Conflicting Macro "TW0_CHARS_TO_INT"
-    #endif
-        
-    #define TW0_CHARS_TO_INT( c1, c2 )  ( c1 << 8 | c2 )
+#define FOUR_CHARS_TO_INT( c1, c2, c3, c4 )  ( c1 << 24 | c2 << 16 | c3 << 8 | c4 )
 
-    
+#ifdef  TW0_CHARS_TO_INT
+#error Conflicting Macro "TW0_CHARS_TO_INT"
+#endif
+
+#define TW0_CHARS_TO_INT( c1, c2 )  ( c1 << 8 | c2 )
+
 #elif __linux__ || __linuxppc__ || __FreeBSD__
-    /* Defines */
-    #define _64BITARG_ "q"
-    #define _S64BITARG_ "lld"
-    #define _U64BITARG_ "llu"
+/* Defines */
+#define _64BITARG_ "q"
+#define _S64BITARG_ "lld"
+#define _U64BITARG_ "llu"
 #if __LP64__
-	#define _S32BITARG_ "d"
-	#define _U32BITARG_ "u"
-        #define _SPOINTERSIZEARG_ _S64BITARG_
-        #define _UPOINTERSIZEARG_ _U64BITARG_
+#define _S32BITARG_ "d"
+#define _U32BITARG_ "u"
+#define _SPOINTERSIZEARG_ _S64BITARG_
+#define _UPOINTERSIZEARG_ _U64BITARG_
 #else
-	#define _S32BITARG_ "d"
-	#define _U32BITARG_ "u"
-        #define _SPOINTERSIZEARG_ _S32BITARG_
-        #define _UPOINTERSIZEARG_ _U32BITARG_
+#define _S32BITARG_ "d"
+#define _U32BITARG_ "u"
+#define _SPOINTERSIZEARG_ _S32BITARG_
+#define _UPOINTERSIZEARG_ _U32BITARG_
 #endif
 
-    /* paths */
-    #define kEOLString "\n"
-    #define kPathDelimiterString "/"
-    #define kPathDelimiterChar '/'
-    #define kPartialPathBeginsWithDelimiter 0
+/* paths */
+#define kEOLString "\n"
+#define kPathDelimiterString "/"
+#define kPathDelimiterChar '/'
+#define kPartialPathBeginsWithDelimiter 0
 
-    /* Includes */
-    #include <sys/types.h>
-    #include <stdint.h>
-    
-    /* Constants */
-    #define QT_TIME_TO_LOCAL_TIME   (-2082844800)
-    #define QT_PATH_SEPARATOR       '/'
+/* Includes */
+#include <sys/types.h>
+#include <stdint.h>
 
-    /* Typedefs */
-    typedef signed long         PointerSizedInt;
-    typedef unsigned long       PointerSizedUInt;
-    typedef uint8_t             UInt8;
-    typedef int8_t              SInt8;
-    typedef uint16_t            UInt16;
-    typedef int16_t             SInt16;
-    typedef uint32_t            UInt32;
-    typedef int32_t		SInt32;
-    typedef int64_t             SInt64;
-    typedef uint64_t            UInt64;
-    typedef float               Float32;
-    typedef double              Float64;
-    typedef UInt16              Bool16;
-    typedef UInt8               Bool8;
-    
-    typedef unsigned int	FourCharCode;
-    typedef FourCharCode        OSType;
+/* Constants */
+#define QT_TIME_TO_LOCAL_TIME   (-2082844800)
+#define QT_PATH_SEPARATOR       '/'
 
-    #ifdef  FOUR_CHARS_TO_INT
-    #error Conflicting Macro "FOUR_CHARS_TO_INT"
-    #endif
+/* Typedefs */
+typedef signed long PointerSizedInt;
+typedef unsigned long PointerSizedUInt;
+typedef uint8_t UInt8;
+typedef int8_t SInt8;
+typedef uint16_t UInt16;
+typedef int16_t SInt16;
+typedef uint32_t UInt32;
+typedef int32_t SInt32;
+typedef int64_t SInt64;
+typedef uint64_t UInt64;
+typedef float Float32;
+typedef double Float64;
+typedef UInt16 Bool16;
+typedef UInt8 Bool8;
 
-    #define FOUR_CHARS_TO_INT( c1, c2, c3, c4 )  ( c1 << 24 | c2 << 16 | c3 << 8 | c4 )
+typedef unsigned int FourCharCode;
+typedef FourCharCode OSType;
 
-    #ifdef  TW0_CHARS_TO_INT
-    #error Conflicting Macro "TW0_CHARS_TO_INT"
-    #endif
-        
-    #define TW0_CHARS_TO_INT( c1, c2 )  ( c1 << 8 | c2 )
+#ifdef  FOUR_CHARS_TO_INT
+#error Conflicting Macro "FOUR_CHARS_TO_INT"
+#endif
 
-    #define kSInt16_Max USHRT_MAX
-    #define kUInt16_Max USHRT_MAX
+#define FOUR_CHARS_TO_INT( c1, c2, c3, c4 )  ( c1 << 24 | c2 << 16 | c3 << 8 | c4 )
 
-    #define kSInt32_Max LONG_MAX
-    #define kUInt32_Max ULONG_MAX
+#ifdef  TW0_CHARS_TO_INT
+#error Conflicting Macro "TW0_CHARS_TO_INT"
+#endif
 
-    #define kSInt64_Max LONG_LONG_MAX
-    #define kUInt64_Max ULONG_LONG_MAX
+#define TW0_CHARS_TO_INT( c1, c2 )  ( c1 << 8 | c2 )
+
+#define kSInt16_Max USHRT_MAX
+#define kUInt16_Max USHRT_MAX
+
+#define kSInt32_Max LONG_MAX
+#define kUInt32_Max ULONG_MAX
+
+#define kSInt64_Max LONG_LONG_MAX
+#define kUInt64_Max ULONG_LONG_MAX
 
 #elif __Win32__
-    
-    /* Defines */
-    #define _64BITARG_ "I64"
-    #define _S64BITARG_ "I64d"
-    #define _U64BITARG_ "I64u"
+
+/* Defines */
+#define _64BITARG_ "I64"
+#define _S64BITARG_ "I64d"
+#define _U64BITARG_ "I64u"
 #if __LP64__
-	#define _S32BITARG_ "d"
-	#define _U32BITARG_ "u"
+#define _S32BITARG_ "d"
+#define _U32BITARG_ "u"
 #else
-	#define _S32BITARG_ "ld"
-	#define _U32BITARG_ "lu"
+#define _S32BITARG_ "ld"
+#define _U32BITARG_ "lu"
 #endif
 
-    /* paths */
-    #define kEOLString "\r\n"
-    #define kPathDelimiterString "\\"
-    #define kPathDelimiterChar '\\'
-    #define kPartialPathBeginsWithDelimiter 0
-    
-    #define crypt(buf, salt) ((char*)buf)
-    
-    /* Includes */
-    #include <windows.h>
-    #include <winsock2.h>
-    #include <mswsock.h>
-    #include <process.h>
-    #include <ws2tcpip.h>
-    #include <io.h>
-    #include <direct.h>
-    #include <errno.h>
+/* paths */
+#define kEOLString "\r\n"
+#define kPathDelimiterString "\\"
+#define kPathDelimiterChar '\\'
+#define kPartialPathBeginsWithDelimiter 0
 
-    
-    #define R_OK 0
-    #define W_OK 1
-        
-    // POSIX errorcodes
-    #define ENOTCONN 1002
-    #define EADDRINUSE 1004
-    #define EINPROGRESS 1007
-    #define ENOBUFS 1008
-    #define EADDRNOTAVAIL 1009
+#define crypt(buf, salt) ((char*)buf)
 
-    // Winsock does not use iovecs
-    struct iovec {
-        u_long  iov_len; // this is not the POSIX definition, it is rather defined to be
-        char FAR*   iov_base; // equivalent to a WSABUF for easy integration into Win32
-    };
-    
-    /* Constants */
-    #define QT_TIME_TO_LOCAL_TIME   (-2082844800)
-    #define QT_PATH_SEPARATOR       '/'
+/* Includes */
+#include <windows.h>
+#include <winsock2.h>
+#include <mswsock.h>
+#include <process.h>
+#include <ws2tcpip.h>
+#include <io.h>
+#include <direct.h>
+#include <errno.h>
 
-    /* Typedefs */
-    typedef signed long         PointerSizedInt;
-    typedef unsigned long       PointerSizedUInt;
-    typedef unsigned char       UInt8;
-    typedef signed char         SInt8;
-    typedef unsigned short      UInt16;
-    typedef signed short        SInt16;
-    typedef unsigned long       UInt32;
-    typedef signed long         SInt32;
-    typedef LONGLONG            SInt64;
-    typedef ULONGLONG           UInt64;
-    typedef float               Float32;
-    typedef double              Float64;
-    typedef UInt16              Bool16;
-    typedef UInt8               Bool8;
-    
-    typedef unsigned long       FourCharCode;
-    typedef FourCharCode        OSType;
+#define R_OK 0
+#define W_OK 1
 
-    #ifdef  FOUR_CHARS_TO_INT
-    #error Conflicting Macro "FOUR_CHARS_TO_INT"
-    #endif
+// POSIX errorcodes
+#define ENOTCONN 1002
+#define EADDRINUSE 1004
+#define EINPROGRESS 1007
+#define ENOBUFS 1008
+#define EADDRNOTAVAIL 1009
 
-    #define FOUR_CHARS_TO_INT( c1, c2, c3, c4 )  ( c1 << 24 | c2 << 16 | c3 << 8 | c4 )
+// Winsock does not use iovecs
+struct iovec {
+	u_long iov_len; // this is not the POSIX definition, it is rather defined to be
+	char FAR* iov_base;// equivalent to a WSABUF for easy integration into Win32
+};
 
-    #ifdef  TW0_CHARS_TO_INT
-    #error Conflicting Macro "TW0_CHARS_TO_INT"
-    #endif
-        
-    #define TW0_CHARS_TO_INT( c1, c2 )  ( c1 << 8 | c2 )
+/* Constants */
+#define QT_TIME_TO_LOCAL_TIME   (-2082844800)
+#define QT_PATH_SEPARATOR       '/'
 
-    #define kSInt16_Max USHRT_MAX
-    #define kUInt16_Max USHRT_MAX
-    
-    #define kSInt32_Max LONG_MAX
-    #define kUInt32_Max ULONG_MAX
-    
-    #undef kSInt64_Max
-    #define kSInt64_Max  9223372036854775807i64
-    
-    #undef kUInt64_Max
-    #define kUInt64_Max  (kSInt64_Max * 2ULL + 1)
+/* Typedefs */
+typedef signed long PointerSizedInt;
+typedef unsigned long PointerSizedUInt;
+typedef unsigned char UInt8;
+typedef signed char SInt8;
+typedef unsigned short UInt16;
+typedef signed short SInt16;
+typedef unsigned long UInt32;
+typedef signed long SInt32;
+typedef LONGLONG SInt64;
+typedef ULONGLONG UInt64;
+typedef float Float32;
+typedef double Float64;
+typedef UInt16 Bool16;
+typedef UInt8 Bool8;
+
+typedef unsigned long FourCharCode;
+typedef FourCharCode OSType;
+
+#ifdef  FOUR_CHARS_TO_INT
+#error Conflicting Macro "FOUR_CHARS_TO_INT"
+#endif
+
+#define FOUR_CHARS_TO_INT( c1, c2, c3, c4 )  ( c1 << 24 | c2 << 16 | c3 << 8 | c4 )
+
+#ifdef  TW0_CHARS_TO_INT
+#error Conflicting Macro "TW0_CHARS_TO_INT"
+#endif
+
+#define TW0_CHARS_TO_INT( c1, c2 )  ( c1 << 8 | c2 )
+
+#define kSInt16_Max USHRT_MAX
+#define kUInt16_Max USHRT_MAX
+
+#define kSInt32_Max LONG_MAX
+#define kUInt32_Max ULONG_MAX
+
+#undef kSInt64_Max
+#define kSInt64_Max  9223372036854775807i64
+
+#undef kUInt64_Max
+#define kUInt64_Max  (kSInt64_Max * 2ULL + 1)
 
 #elif __sgi__
-    /* Defines */
-    #define _64BITARG_ "ll"
-    #define _S64BITARG_ "lld"
-    #define _U64BITARG_ "llu"
+/* Defines */
+#define _64BITARG_ "ll"
+#define _S64BITARG_ "lld"
+#define _U64BITARG_ "llu"
 #if __LP64__
-	#define _S32BITARG_ "d"
-	#define _U32BITARG_ "u"
+#define _S32BITARG_ "d"
+#define _U32BITARG_ "u"
 #else
-	#define _S32BITARG_ "ld"
-	#define _U32BITARG_ "lu"
+#define _S32BITARG_ "ld"
+#define _U32BITARG_ "lu"
 #endif
 
-    /* paths */
-    #define kPathDelimiterString "/"
-    #define kPathDelimiterChar '/'
-    #define kPartialPathBeginsWithDelimiter 0
-	#define	kEOLString "\n"
+/* paths */
+#define kPathDelimiterString "/"
+#define kPathDelimiterChar '/'
+#define kPartialPathBeginsWithDelimiter 0
+#define	kEOLString "\n"
 
-    /* Includes */
-    #include <sys/types.h>
-    #include <netinet/in.h>
-    #include <pthread.h>
-    
-    /* Constants */
-    #define QT_TIME_TO_LOCAL_TIME   (-2082844800)
-    #define QT_PATH_SEPARATOR       '/'
+/* Includes */
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <pthread.h>
 
-    /* Typedefs */
-    typedef unsigned char       boolean;
-    #define true                1
-    #define false               0
+/* Constants */
+#define QT_TIME_TO_LOCAL_TIME   (-2082844800)
+#define QT_PATH_SEPARATOR       '/'
 
-    typedef signed long         PointerSizedInt;
-    typedef unsigned long       PointerSizedUInt;
-    typedef unsigned char       UInt8;
-    typedef signed char         SInt8;
-    typedef unsigned short      UInt16;
-    typedef signed short        SInt16;
-    typedef unsigned long       UInt32;
-    typedef signed long         SInt32;
-    typedef signed long long    SInt64;
-    typedef unsigned long long  UInt64;
-    typedef float               Float32;
-    typedef double              Float64;
-	
-	typedef UInt16				Bool16;
+/* Typedefs */
+typedef unsigned char boolean;
+#define true                1
+#define false               0
 
-	typedef unsigned long		FourCharCode;
-	typedef FourCharCode		OSType;
+typedef signed long PointerSizedInt;
+typedef unsigned long PointerSizedUInt;
+typedef unsigned char UInt8;
+typedef signed char SInt8;
+typedef unsigned short UInt16;
+typedef signed short SInt16;
+typedef unsigned long UInt32;
+typedef signed long SInt32;
+typedef signed long long SInt64;
+typedef unsigned long long UInt64;
+typedef float Float32;
+typedef double Float64;
 
-	/* Nulled-out new() for use without memory debugging */
-	/* #define NEW(t,c,v) new c v
-	#define NEW_ARRAY(t,c,n) new c[n] */
+typedef UInt16 Bool16;
 
-    #define thread_t    pthread_t
-    #define cthread_errno() errno
+typedef unsigned long FourCharCode;
+typedef FourCharCode OSType;
 
-    #ifdef  FOUR_CHARS_TO_INT
-    #error Conflicting Macro "FOUR_CHARS_TO_INT"
-    #endif
+/* Nulled-out new() for use without memory debugging */
+/* #define NEW(t,c,v) new c v
+ #define NEW_ARRAY(t,c,n) new c[n] */
 
-    #define FOUR_CHARS_TO_INT( c1, c2, c3, c4 )  ( c1 << 24 | c2 << 16 | c3 << 8 | c4 )
+#define thread_t    pthread_t
+#define cthread_errno() errno
 
-    #ifdef  TW0_CHARS_TO_INT
-    #error Conflicting Macro "TW0_CHARS_TO_INT"
-    #endif
-        
-    #define TW0_CHARS_TO_INT( c1, c2 )  ( c1 << 8 | c2 )
+#ifdef  FOUR_CHARS_TO_INT
+#error Conflicting Macro "FOUR_CHARS_TO_INT"
+#endif
+
+#define FOUR_CHARS_TO_INT( c1, c2, c3, c4 )  ( c1 << 24 | c2 << 16 | c3 << 8 | c4 )
+
+#ifdef  TW0_CHARS_TO_INT
+#error Conflicting Macro "TW0_CHARS_TO_INT"
+#endif
+
+#define TW0_CHARS_TO_INT( c1, c2 )  ( c1 << 8 | c2 )
 
 #elif defined(sun) // && defined(sparc)
 
-    /* Defines */
-    #define _64BITARG_ "ll"
-    #define _S64BITARG_ "Ild"
-    #define _U64BITARG_ "llu"
+/* Defines */
+#define _64BITARG_ "ll"
+#define _S64BITARG_ "Ild"
+#define _U64BITARG_ "llu"
 #if __LP64__
-	#define _S32BITARG_ "d"
-	#define _U32BITARG_ "u"
+#define _S32BITARG_ "d"
+#define _U32BITARG_ "u"
 #else
-	#define _S32BITARG_ "ld"
-	#define _U32BITARG_ "lu"
+#define _S32BITARG_ "ld"
+#define _U32BITARG_ "lu"
 #endif
 
-    /* paths */
-    #define kPathDelimiterString "/"
-    #define kPathDelimiterChar '/'
-    #define kPartialPathBeginsWithDelimiter 0
-    #define kEOLString "\n"
+/* paths */
+#define kPathDelimiterString "/"
+#define kPathDelimiterChar '/'
+#define kPartialPathBeginsWithDelimiter 0
+#define kEOLString "\n"
 
-    /* Includes */
-    #include <sys/types.h>
-    #include <sys/byteorder.h>
-    
-    /* Constants */
-    #define QT_TIME_TO_LOCAL_TIME   (-2082844800)
-    #define QT_PATH_SEPARATOR       '/'
+/* Includes */
+#include <sys/types.h>
+#include <sys/byteorder.h>
 
-    /* Typedefs */
-    //typedef unsigned char     Bool16;
-    //#define true              1
-    //#define false             0
+/* Constants */
+#define QT_TIME_TO_LOCAL_TIME   (-2082844800)
+#define QT_PATH_SEPARATOR       '/'
 
-    typedef signed long         PointerSizedInt;
-    typedef unsigned long       PointerSizedUInt;
-    typedef unsigned char       UInt8;
-    typedef signed char         SInt8;
-    typedef unsigned short      UInt16;
-    typedef signed short        SInt16;
-    typedef unsigned long       UInt32;
-    typedef signed long         SInt32;
-    typedef signed long long    SInt64;
-    typedef unsigned long long  UInt64;
-    typedef float               Float32;
-    typedef double              Float64;
-    typedef UInt16              Bool16;
-    typedef UInt8               Bool8;
-    
-    typedef unsigned long       FourCharCode;
-    typedef FourCharCode        OSType;
+/* Typedefs */
+//typedef unsigned char     Bool16;
+//#define true              1
+//#define false             0
+typedef signed long PointerSizedInt;
+typedef unsigned long PointerSizedUInt;
+typedef unsigned char UInt8;
+typedef signed char SInt8;
+typedef unsigned short UInt16;
+typedef signed short SInt16;
+typedef unsigned long UInt32;
+typedef signed long SInt32;
+typedef signed long long SInt64;
+typedef unsigned long long UInt64;
+typedef float Float32;
+typedef double Float64;
+typedef UInt16 Bool16;
+typedef UInt8 Bool8;
 
-    #ifdef  FOUR_CHARS_TO_INT
-    #error Conflicting Macro "FOUR_CHARS_TO_INT"
-    #endif
+typedef unsigned long FourCharCode;
+typedef FourCharCode OSType;
 
-    #define FOUR_CHARS_TO_INT( c1, c2, c3, c4 )  ( c1 << 24 | c2 << 16 | c3 << 8 | c4 )
+#ifdef  FOUR_CHARS_TO_INT
+#error Conflicting Macro "FOUR_CHARS_TO_INT"
+#endif
 
-    #ifdef  TW0_CHARS_TO_INT
-    #error Conflicting Macro "TW0_CHARS_TO_INT"
-    #endif
-        
-    #define TW0_CHARS_TO_INT( c1, c2 )  ( c1 << 8 | c2 )
+#define FOUR_CHARS_TO_INT( c1, c2, c3, c4 )  ( c1 << 24 | c2 << 16 | c3 << 8 | c4 )
+
+#ifdef  TW0_CHARS_TO_INT
+#error Conflicting Macro "TW0_CHARS_TO_INT"
+#endif
+
+#define TW0_CHARS_TO_INT( c1, c2 )  ( c1 << 8 | c2 )
 
 #elif defined(__hpux__)
 
-    /* Defines */
-    #define _64BITARG_ "ll"
-    #define _S64BITARG_ "Ild"
-    #define _U64BITARG_ "llu"
+/* Defines */
+#define _64BITARG_ "ll"
+#define _S64BITARG_ "Ild"
+#define _U64BITARG_ "llu"
 #if __LP64__
-	#define _S32BITARG_ "d"
-	#define _U32BITARG_ "u"
+#define _S32BITARG_ "d"
+#define _U32BITARG_ "u"
 #else
-	#define _S32BITARG_ "ld"
-	#define _U32BITARG_ "lu"
+#define _S32BITARG_ "ld"
+#define _U32BITARG_ "lu"
 #endif
 
-    /* paths */
-    #define kPathDelimiterString "/"
-    #define kPathDelimiterChar '/'
-    #define kPartialPathBeginsWithDelimiter 0
-    #define kEOLString "\n"
+/* paths */
+#define kPathDelimiterString "/"
+#define kPathDelimiterChar '/'
+#define kPartialPathBeginsWithDelimiter 0
+#define kEOLString "\n"
 
-    /* Includes */
-    #include <sys/types.h>
-    #include <sys/byteorder.h>
+/* Includes */
+#include <sys/types.h>
+#include <sys/byteorder.h>
 
-    /* Constants */
-    #define QT_TIME_TO_LOCAL_TIME   (-2082844800)
-    #define QT_PATH_SEPARATOR       '/'
+/* Constants */
+#define QT_TIME_TO_LOCAL_TIME   (-2082844800)
+#define QT_PATH_SEPARATOR       '/'
 
-    /* Typedefs */
-    //typedef unsigned char     Bool16;
-    //#define true              1
-    //#define false             0
+/* Typedefs */
+//typedef unsigned char     Bool16;
+//#define true              1
+//#define false             0
+typedef signed long PointerSizedInt;
+typedef unsigned long PointerSizedUInt;
+typedef unsigned char UInt8;
+typedef signed char SInt8;
+typedef unsigned short UInt16;
+typedef signed short SInt16;
+typedef unsigned long UInt32;
+typedef signed long SInt32;
+typedef signed long long SInt64;
+typedef unsigned long long UInt64;
+typedef float Float32;
+typedef double Float64;
+typedef UInt16 Bool16;
+typedef UInt8 Bool8;
 
-    typedef signed long         PointerSizedInt;
-    typedef unsigned long       PointerSizedUInt;
-    typedef unsigned char       UInt8;
-    typedef signed char         SInt8;
-    typedef unsigned short      UInt16;
-    typedef signed short        SInt16;
-    typedef unsigned long       UInt32;
-    typedef signed long         SInt32;
-    typedef signed long long    SInt64;
-    typedef unsigned long long  UInt64;
-    typedef float               Float32;
-    typedef double              Float64;
-    typedef UInt16              Bool16;
-    typedef UInt8               Bool8;
+typedef unsigned long FourCharCode;
+typedef FourCharCode OSType;
 
-    typedef unsigned long       FourCharCode;
-    typedef FourCharCode        OSType;
+#ifdef  FOUR_CHARS_TO_INT
+#error Conflicting Macro "FOUR_CHARS_TO_INT"
+#endif
 
-    #ifdef  FOUR_CHARS_TO_INT
-    #error Conflicting Macro "FOUR_CHARS_TO_INT"
-    #endif
+#define FOUR_CHARS_TO_INT( c1, c2, c3, c4 )  ( c1 << 24 | c2 << 16 | c3 << 8 | c4 )
 
-    #define FOUR_CHARS_TO_INT( c1, c2, c3, c4 )  ( c1 << 24 | c2 << 16 | c3 << 8 | c4 )
+#ifdef  TW0_CHARS_TO_INT
+#error Conflicting Macro "TW0_CHARS_TO_INT"
+#endif
 
-    #ifdef  TW0_CHARS_TO_INT
-    #error Conflicting Macro "TW0_CHARS_TO_INT"
-    #endif
-
-    #define TW0_CHARS_TO_INT( c1, c2 )  ( c1 << 8 | c2 )
+#define TW0_CHARS_TO_INT( c1, c2 )  ( c1 << 8 | c2 )
 
 #elif defined(__osf__)
-    
-   /* Defines */
-    #define _64BITARG_ "l"
-    #define _S64BITARG_ "ld"
-    #define _U64BITARG_ "lu"
+
+/* Defines */
+#define _64BITARG_ "l"
+#define _S64BITARG_ "ld"
+#define _U64BITARG_ "lu"
 #if __LP64__
-	#define _S32BITARG_ "ld"
-	#define _U32BITARG_ "lu"
+#define _S32BITARG_ "ld"
+#define _U32BITARG_ "lu"
 #else
-	#define _S32BITARG_ "d"
-	#define _U32BITARG_ "u"
+#define _S32BITARG_ "d"
+#define _U32BITARG_ "u"
 #endif
 
-    /* paths */
-    #define kEOLString "\n"
-    #define kPathDelimiterString "/"
-    #define kPathDelimiterChar '/'
-    #define kPartialPathBeginsWithDelimiter 0
+/* paths */
+#define kEOLString "\n"
+#define kPathDelimiterString "/"
+#define kPathDelimiterChar '/'
+#define kPartialPathBeginsWithDelimiter 0
 
-    /* Includes */
-    #include <sys/types.h>
-    #include <machine/endian.h>
-    
-    /* Constants */
-    #define QT_TIME_TO_LOCAL_TIME   (-2082844800)
-    #define QT_PATH_SEPARATOR       '/'
+/* Includes */
+#include <sys/types.h>
+#include <machine/endian.h>
 
-    /* Typedefs */
-    typedef unsigned long       PointerSizedInt;
-    typedef unsigned char       UInt8;
-    typedef signed char         SInt8;
-    typedef unsigned short      UInt16;
-    typedef signed short        SInt16;
-    typedef unsigned int        UInt32;
-    typedef signed int          SInt32;
-    typedef signed long         SInt64;
-    typedef unsigned long       UInt64;
-    typedef float               Float32;
-    typedef double              Float64;
-    typedef UInt16              Bool16;
-    typedef UInt8               Bool8;
-    
-    typedef unsigned int        FourCharCode;
-    typedef FourCharCode        OSType;
+/* Constants */
+#define QT_TIME_TO_LOCAL_TIME   (-2082844800)
+#define QT_PATH_SEPARATOR       '/'
 
-    #ifdef  FOUR_CHARS_TO_INT
-    #error Conflicting Macro "FOUR_CHARS_TO_INT"
-    #endif
+/* Typedefs */
+typedef unsigned long PointerSizedInt;
+typedef unsigned char UInt8;
+typedef signed char SInt8;
+typedef unsigned short UInt16;
+typedef signed short SInt16;
+typedef unsigned int UInt32;
+typedef signed int SInt32;
+typedef signed long SInt64;
+typedef unsigned long UInt64;
+typedef float Float32;
+typedef double Float64;
+typedef UInt16 Bool16;
+typedef UInt8 Bool8;
 
-    #define FOUR_CHARS_TO_INT( c1, c2, c3, c4 )  ( c1 << 24 | c2 << 16 | c3 << 8 | c4 )
+typedef unsigned int FourCharCode;
+typedef FourCharCode OSType;
 
-    #ifdef  TW0_CHARS_TO_INT
-    #error Conflicting Macro "TW0_CHARS_TO_INT"
-    #endif
-        
-    #define TW0_CHARS_TO_INT( c1, c2 )  ( c1 << 8 | c2 )
+#ifdef  FOUR_CHARS_TO_INT
+#error Conflicting Macro "FOUR_CHARS_TO_INT"
+#endif
 
+#define FOUR_CHARS_TO_INT( c1, c2, c3, c4 )  ( c1 << 24 | c2 << 16 | c3 << 8 | c4 )
+
+#ifdef  TW0_CHARS_TO_INT
+#error Conflicting Macro "TW0_CHARS_TO_INT"
+#endif
+
+#define TW0_CHARS_TO_INT( c1, c2 )  ( c1 << 8 | c2 )
 
 #endif
 
 typedef SInt32 OS_Error;
 
-enum
-{
-    OS_NoErr = (OS_Error) 0,
-    OS_BadURLFormat = (OS_Error) -100,
-    OS_NotEnoughSpace = (OS_Error) -101
+enum {
+	OS_NoErr = (OS_Error) 0,
+	OS_BadURLFormat = (OS_Error) -100,
+	OS_NotEnoughSpace = (OS_Error) -101
 };
-
 
 #endif /* OSHeaders_H */

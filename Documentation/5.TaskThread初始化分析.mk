@@ -225,6 +225,7 @@ void TaskThread::Entry()
                 theTimeout = theTask->Run();
                 theTask->fWriteLock = false;
             } else {
+				//回调派生类的Run方法
                 OSMutexReadLocker mutexLocker(&TaskThreadPool::sMutexRW);
                 theTimeout = theTask->Run();
             }
