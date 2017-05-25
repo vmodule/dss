@@ -949,19 +949,23 @@ void QTSServer::CreateModule(char* inModuleFolderPath, char* inModuleName)
 	if (*inModuleName == '.')
 		return; // Fix 2572248. Do not attempt to load '.' files as modules at all
 
+	//debug by jeffrey
+	qtss_printf("CreateModule:%s-%s\n",inModuleFolderPath,inModuleName);
+	
 	//
 	// Construct a full path to this module
 	UInt32 totPathLen = ::strlen(inModuleFolderPath) + ::strlen(inModuleName);
-	OSCharArrayDeleter
-	theModPath(NEW char[totPathLen + 4]);
+	OSCharArrayDeleter theModPath(NEW char[totPathLen + 4]);
+	
 	::strcpy(theModPath.GetObject(), inModuleFolderPath);
 	::strcat(theModPath.GetObject(), kPathDelimiterString);
 	::strcat(theModPath.GetObject(), inModuleName);
 
 	//
 	// Construct a QTSSModule object, and attempt to initialize the module
-	QTSSModule* theNewModule = NEW
-	QTSSModule(inModuleName, theModPath.GetObject());
+	QTSSModule* theNewModule = NEW 
+						QTSSModule(inModuleName, theModPath.GetObject());
+	
 	QTSS_Error theErr = theNewModule->SetupModule(&sCallbacks);
 
 	if (theErr != QTSS_NoErr)
