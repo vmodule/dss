@@ -129,9 +129,7 @@ QTSServer::~QTSServer()
 	//
 	// Grab the server mutex. This is to make sure all gets & set values on this
 	// object complete before we start deleting stuff
-	OSMutexLocker* serverlocker = new OSMutexLocker(
-			this->GetServerObjectMutex());
-
+	OSMutexLocker* serverlocker = new OSMutexLocker(this->GetServerObjectMutex());
 	//
 	// Grab the prefs mutex. This is to make sure we can't reread prefs
 	// WHILE shutting down, which would cause some weirdness for QTSS API
@@ -949,9 +947,6 @@ void QTSServer::CreateModule(char* inModuleFolderPath, char* inModuleName)
 	if (*inModuleName == '.')
 		return; // Fix 2572248. Do not attempt to load '.' files as modules at all
 
-	//debug by jeffrey
-	qtss_printf("CreateModule:%s-%s\n",inModuleFolderPath,inModuleName);
-	
 	//
 	// Construct a full path to this module
 	UInt32 totPathLen = ::strlen(inModuleFolderPath) + ::strlen(inModuleName);
@@ -982,6 +977,8 @@ void QTSServer::CreateModule(char* inModuleFolderPath, char* inModuleName)
 				theErr, inModuleName);
 		delete theNewModule;
 	}
+	//debug by jeffrey
+	qtss_printf("CreateModule:%s-%s\n",inModuleFolderPath,inModuleName);	
 }
 
 Bool16 QTSServer::AddModule(QTSSModule* inModule)
@@ -1191,8 +1188,7 @@ Task* RTSPListenerSocket::GetSessionTask(TCPSocket** outSocket)
 	Bool16 doReportHTTPConnectionAddress =
 			QTSServerInterface::GetServer()->GetPrefs()->GetDoReportHTTPConnectionAddress();
 
-	RTSPSession* theTask = NEW
-	RTSPSession(doReportHTTPConnectionAddress);
+	RTSPSession* theTask = NEW RTSPSession(doReportHTTPConnectionAddress);
 	*outSocket = theTask->GetSocket(); // out socket is not attached to a unix socket yet.
 
 	if (this->OverMaxConnections(0))

@@ -86,6 +86,17 @@ public:
     // Using one of the above predefined indexes, 
     //this returns the corresponding map
     static QTSSDictionaryMap*       GetMap(UInt32 inIndex)
+private:
+	//
+	// Repository for dictionary maps
+	static QTSSDictionaryMap* sDictionaryMaps[kNumDictionaries
+			+ kNumDynamicDictionaryTypes];	
+	enum
+	{
+		kMinArraySize = 20
+	};		
+	UInt32 fAttrArraySize;
+	QTSSAttrInfoDict** fAttrArray;	
 };
 
 /***
@@ -94,14 +105,13 @@ public:
 那么在它的构造函数中都做了一些什么?QTSSDictionaryMap构造函数如下
 ****/
 QTSSDictionaryMap::QTSSDictionaryMap(UInt32 inNumReservedAttrs, UInt32 inFlags)
-    :fNextAvailableID(inNumReservedAttrs), 
-    fNumValidAttrs(inNumReservedAttrs),
-    fAttrArraySize(inNumReservedAttrs),
-    fFlags(inFlags)
+	: fNextAvailableID(inNumReservedAttrs)
+	, fNumValidAttrs(inNumReservedAttrs)
+	, fAttrArraySize(inNumReservedAttrs)
+	, fFlags(inFlags)
 {
-    if (fAttrArraySize < kMinArraySize)//kMinArraySize = 20
+    if (fAttrArraySize < kMinArraySize)
         fAttrArraySize = kMinArraySize;
-    //为fAttrArray分配至少20个大小QTSSAttrInfoDict对象的空间
     fAttrArray = NEW QTSSAttrInfoDict*[fAttrArraySize];
     ::memset(fAttrArray, 0, sizeof(QTSSAttrInfoDict*) * fAttrArraySize);
 }
@@ -109,54 +119,155 @@ QTSSDictionaryMap::QTSSDictionaryMap(UInt32 inNumReservedAttrs, UInt32 inFlags)
 QTSSDictionaryMap构造函数需要传入两个参数,一个是ReservedAttrs的数量,另一个是标志,这里暂且不知它是
 什么玩意,在构造函数中会为我们new了一个QTSSAttrInfoDict*的数组,这里只是分配了这么大的内存空间,
 其中数组的大小至少为20,如果大于20则它的大小依赖与传入的第一个参数也就是inNumReservedAttrs的值,
-那么QTSSAttrInfoDict是什么?fAttrArray又是什么?fAttrArray是一个QTSSAttrInfoDict**的二级指针,
-说白了就是QTSSAttrInfoDict*的数组,并且QTSSAttrInfoDict是QTSSDictionary的子类
+那么QTSSAttrInfoDict是什么鬼?fAttrArray又是什么?fAttrArray是一个QTSSAttrInfoDict**的二级指针,
+说白了就是QTSSAttrInfoDict*的数组,并且QTSSAttrInfoDict是QTSSDictionary的子类,从这也可以看出在QTSS中
+所有的数据类型都由QTSSDictionaryMap集合来统一管理,都将保存到sDictionaryMaps集合数组中,而每个QTSSDictionaryMap集合
+当中又保存了一个QTSSAttrInfoDict的数组,所以对于每一个QTSS的数据类型都应该是直接或者间接的由QTSSAttrInfoDict类
+来描述，QTSSAttrInfoDict类的定义如下:
 **/
-class QTSSDictionaryMap
+class QTSSAttrInfoDict: public QTSSDictionary
 {
 public:
-    enum
-    {
-        kMinArraySize = 20
-    };
-    UInt32                          fNextAvailableID;
-    UInt32                          fNumValidAttrs;
-    UInt32                          fAttrArraySize;
-    QTSSAttrInfoDict**              fAttrArray;
-    UInt32                          fFlags;
+	struct AttrInfo{
+		// This is all the relevent information for each dictionary
+		// attribute.
+		char fAttrName[QTSS_MAX_ATTRIBUTE_NAME_SIZE + 1];
+		QTSS_AttrFunctionPtr fFuncPtr;
+		QTSS_AttrDataType fAttrDataType;
+		QTSS_AttrPermission fAttrPermission;
+	};
+	QTSSAttrInfoDict();
+	virtual ~QTSSAttrInfoDict();
+private:
+	AttrInfo fAttrInfo;
+	QTSS_AttributeID fID;
+	static AttrInfo sAttributes[];
+	friend class QTSSDictionaryMap;
 };
 /**
-结合上面的分析我们可以得出DSS中存在一个全局的QTSSDictionaryMap对象数组名字叫sDictionaryMaps
-它的大小目前是19,也就是kServerDictIndex～k3GPPRTSPSessionDictIndex,并且每一个数组元素又
-维护了至少20个QTSSAttrInfoDict*的指针,也就是至少20个QTSSDictionary*指针,如果说DSS服务器包含
-kServerDictIndex到k3GPPRTSPSessionDictIndex个部件,那么他们每一种功能就至少包含20中属性树,并且每一种
-属性树用一个QTSSDictionary对象来描述
+QTSSAttrInfoDict的定义告诉我们,所有用QTSSAttrInfoDict描述的数据类型都包含了一个AttrInfo结构体
+该结构体里面记录了四条属性参数分别为,属性名字,属性函数指针,属性数据类型,属性权限
 **/
+
 /**
-2.5.3.每一种属性树究竟包含多少种属性?
-回到QTSSDictionaryMap::Initialize()函数中结合QTSSDictionaryMap构造函数的传参过程
-找到它传入参数的定义的地方在apistublib/QTSS.h文件当中,DSS将属性归类成如下,每一类属性
-树都被定义成一个枚举类型
+2.5.3. QTSS默认有多少种数据类型?(也就是有多少个QTSSDictionaryMap实例),每一种数据类型对应多少条属性?
+(也就是对应有多少个QTSSAttrInfoDict实例)回到QTSSDictionaryMap::Initialize()函数中结合QTSSDictionaryMap
+构造函数的传参过程找到它传入参数的定义的地方在apistublib/QTSS.h文件当中,DSS将所有的数据类型分类如下
 **/
+enum
+{
+    //QTSS_RTPStreamObject parameters. All of these are preemptive safe.
+    qtssRTPStrNumParams             = 41 /*QTSS_RTPStreamAttributes 数据类型包含41条属性*/
+};
 typedef UInt32 QTSS_RTPStreamAttributes;
+
+enum 
+{
+    qtss3GPPStreamNumParams             = 3
+};
 typedef UInt32 QTSS_RTPStream3GPPAttributes; //QTSS_3GPPStreamObject
+
+enum
+{
+    //QTSS_ClientSessionObject parameters. All of these are preemptive safe
+    qtssCliSesNumParams             = 40
+};
 typedef UInt32 QTSS_ClientSessionAttributes;
+
+enum 
+{
+    qtss3GPPCliSesNumParams                         = 5
+};
 typedef UInt32 QTSS_ClientSession3GPPAttributes;
+
+enum
+{
+    //QTSS_RTSPSessionObject parameters
+    qtssRTSPSesNumParams    = 16
+};
 typedef UInt32 QTSS_RTSPSessionAttributes;
+
+enum 
+{
+    qtss3GPPRTSPSesEnabled           = 0,
+    qtss3GPPRTSPSessNumParams        = 1
+};
 typedef UInt32 QTSS_3GPPRTSPSessionAttributes;
+
+enum 
+{
+    //All text names are identical to the enumerated type names
+    //QTSS_RTSPRequestObject parameters. All of these are pre-emptive safe parameters
+    qtssRTSPReqNumParams            = 44 
+};
 typedef UInt32 QTSS_RTSPRequestAttributes;
+
+enum 
+{
+    qtss3GPPRequestNumParams             = 2
+};
 typedef UInt32 QTSS_RTSPRequest3GPPAttributes;
+
+enum
+{
+    //QTSS_ServerObject parameters
+    qtssSvrNumParams                = 43
+};
 typedef UInt32 QTSS_ServerAttributes;
+
+enum
+{
+    //QTSS_PrefsObject parameters	
+    qtssPrefsNumParams                      = 90
+};
 typedef UInt32 QTSS_PrefsAttributes;
+
+enum
+{
+    //QTSS_TextMessagesObject parameters
+    qtssMsgNumParams                = 44
+    
+};
 typedef UInt32 QTSS_TextMessagesAttributes;
+
+enum
+{
+    //QTSS_FileObject parameters
+    qtssFlObjNumParams              = 5
+};
 typedef UInt32 QTSS_FileObjectAttributes;
+
+enum
+{
+    //QTSS_ModuleObject parameters       
+    qtssModNumParams            = 6
+};
 typedef UInt32 QTSS_ModuleObjectAttributes;
+
+enum
+{
+    //QTSS_AttrInfoObject parameters
+    qtssAttrInfoNumParams           = 4
+};
 typedef UInt32 QTSS_AttrInfoObjectAttributes;
+
+enum
+{
+    //QTSS_UserProfileObject parameters
+    qtssUserNumParams           = 7,
+};
 typedef UInt32 QTSS_UserProfileObjectAttributes;
+
+enum
+{
+    //QTSS_ConnectedUserObject parameters
+    qtssConnectionNumParams             = 11
+};
 typedef UInt32 QTSS_ConnectedUserObjectAttributes;
+
 /**
 2.5.4.QTSSAttrInfoDict的配置和读取,再回到QTSSDictionaryMap::Initialize()函数在创建kAttrInfoDictIndex
-对应的属性树之后,有对其属性惊喜初始化操作
+对应的数据类型后,有对其数据类型对应的各条属性进行相应的初始化
 **/
 void QTSSDictionaryMap::Initialize()
 {
@@ -180,18 +291,17 @@ qtssAttrInfoNumParams为4,所以在构造QTSSDictionaryMap的同时会为我们�
 @inDataType: attr of data type int bool or ?
 @inPermission: attr of operation of permission write or read or ?
 **/
-void QTSSDictionaryMap::SetAttribute(QTSS_AttributeID inID, 
-                                    const char* inAttrName,
-                                    QTSS_AttrFunctionPtr inFuncPtr,
-                                    QTSS_AttrDataType inDataType,
-                                    QTSS_AttrPermission inPermission )
+void QTSSDictionaryMap::SetAttribute(
+	QTSS_AttributeID inID, 
+	const char* inAttrName,
+	QTSS_AttrFunctionPtr inFuncPtr,
+	QTSS_AttrDataType inDataType,
+	QTSS_AttrPermission inPermission )
 {
     UInt32 theIndex = QTSSDictionaryMap::ConvertAttrIDToArrayIndex(inID);
     UInt32 theNameLen = ::strlen(inAttrName);
-    Assert(theNameLen < QTSS_MAX_ATTRIBUTE_NAME_SIZE);
-    Assert(fAttrArray[theIndex] == NULL);
     //在前面只是为fAttrArray分配了至少20个大小QTSSAttrInfoDict的空间
-    //并将其空间初始化成0,在这里为fAttrArray数组中的元素分配内存
+    //并将其空间初始化成0,在这里对于每一条属性都应当创建一个QTSSAttrInfoDict实例
     fAttrArray[theIndex] = NEW QTSSAttrInfoDict;
     
     //Copy the information into the first available element
@@ -226,29 +336,9 @@ fAttributes对象.
 然后再分析它父类QTSSDictionary的构造,最后我们分析QTSSDictionary::SetVal函数的实现
 **/
 /**
-2.5.5.认识QTSSAttrInfoDict类
+2.5.5.QTSSAttrInfoDict类的构造分析
 它定义如下:
 **/
-class QTSSAttrInfoDict : public QTSSDictionary
-{
-public:
-    struct AttrInfo
-    {
-        // This is all the relevent information for each dictionary
-        // attribute.
-        char  fAttrName[QTSS_MAX_ATTRIBUTE_NAME_SIZE + 1];
-        QTSS_AttrFunctionPtr    fFuncPtr;//函数指针
-        QTSS_AttrDataType       fAttrDataType;//数据类型
-        QTSS_AttrPermission     fAttrPermission;//操作权限
-    };
-    QTSSAttrInfoDict();
-    virtual ~QTSSAttrInfoDict();
-private:
-    AttrInfo fAttrInfo;
-    QTSS_AttributeID fID;
-    static AttrInfo sAttributes[];
-    friend class QTSSDictionaryMap;
-};
 QTSSAttrInfoDict::QTSSAttrInfoDict()
     : QTSSDictionary(QTSSDictionaryMap::GetMap(QTSSDictionaryMap::kAttrInfoDictIndex)), 
     fID(qtssIllegalAttrID)
@@ -287,14 +377,20 @@ private:
         Bool16      fIsDynamicDictionary; //is this a dictionary object?
     };
     DictValueElement*   fAttributes;        
-};        
+};     
+   
 /*
 在创建QTSSAttrInfoDict对象的同时QTSSDictionary同时被创建,它的构造函数如下
 */
 QTSSDictionary::QTSSDictionary(QTSSDictionaryMap* inMap, OSMutex* inMutex) 
-:   fAttributes(NULL), fInstanceAttrs(NULL), fInstanceArraySize(0),
-    fMap(inMap), fInstanceMap(NULL), fMutexP(inMutex), fMyMutex(false),
-    fLocked(false)
+	: fAttributes(NULL)
+	, fInstanceAttrs(NULL)
+	, fInstanceArraySize(0)
+	, fMap(inMap)
+	, fInstanceMap(NULL)
+	, fMutexP(inMutex)
+	, fMyMutex(false)
+	, fLocked(false)
 {
     if (fMap != NULL)
         fAttributes = NEW DictValueElement[inMap->GetNumAttrs()];

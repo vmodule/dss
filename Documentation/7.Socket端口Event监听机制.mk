@@ -324,9 +324,9 @@ bool selecthasdata()
 sPipes[0]文件句柄从sReturnedReadSet中移除掉,然后让sNumFDsBackFromSelect--
 在这里sNumFDsBackFromSelect--后又会变成0,所以对于select_waitevent而言以及会
 继续while(!selecthasdata)循环,继续从readset集合中拷贝要监听的文件集合到sReturnedReadSet
-当中,再次调用select函数进行阻塞
+当中,再次调用select函数进行阻塞,但是此时readset和sReturnedReadSet集合中已经包含了socket
+服务端文件句柄,此时当有新的客户端连接进来select会被触发
 **/
-
 
 int constructeventreq(struct eventreq* req, int fd, int event)
 {

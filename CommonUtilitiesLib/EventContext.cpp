@@ -171,9 +171,7 @@ void EventContext::RequestEvent(int theMask)
 		if (select_modwatch(&fEventReq, theMask) != 0)
 #endif
 			AssertV(false, OSThread::GetErrno());
-	}
-	else
-	{
+	} else {
 		//allocate a Unique ID for this socket, and add it to the ref table
 
 #ifdef __Win32__

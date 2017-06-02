@@ -44,24 +44,24 @@
 
 class OSCodeFragment
 {
-    public:
+public:
+
+    static void Initialize();
+
+    OSCodeFragment(const char* inPath);
+    ~OSCodeFragment();
     
-        static void Initialize();
+    Bool16  IsValid() { return (fFragmentP != NULL); }
+    void*   GetSymbol(const char* inSymbolName);
     
-        OSCodeFragment(const char* inPath);
-        ~OSCodeFragment();
-        
-        Bool16  IsValid() { return (fFragmentP != NULL); }
-        void*   GetSymbol(const char* inSymbolName);
-        
-    private:
-    
+private:
+
 #ifdef __Win32__
-        HMODULE fFragmentP;
+    HMODULE fFragmentP;
 #elif __MacOSX__
-        CFBundleRef fFragmentP;
+    CFBundleRef fFragmentP;
 #else
-        void*   fFragmentP;
+    void*   fFragmentP;
 #endif
 };
 

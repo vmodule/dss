@@ -42,16 +42,19 @@
 
 #include <errno.h>
 
-
-
 QTSSDictionary::QTSSDictionary(QTSSDictionaryMap* inMap, OSMutex* inMutex) 
-:   fAttributes(NULL), fInstanceAttrs(NULL), fInstanceArraySize(0),
-    fMap(inMap), fInstanceMap(NULL), fMutexP(inMutex), fMyMutex(false), fLocked(false)
+	: fAttributes(NULL)
+	, fInstanceAttrs(NULL)
+	, fInstanceArraySize(0)
+	, fMap(inMap)
+	, fInstanceMap(NULL)
+	, fMutexP(inMutex)
+	, fMyMutex(false)
+	, fLocked(false)
 {
     if (fMap != NULL)
         fAttributes = NEW DictValueElement[inMap->GetNumAttrs()];
-	if (fMutexP == NULL)
-	{
+	if (fMutexP == NULL) {
 		fMyMutex = true;
 		fMutexP = NEW OSMutex();
 	}
@@ -70,7 +73,8 @@ QTSSDictionary::~QTSSDictionary()
 		delete fMutexP;
 }
 
-QTSSDictionary* QTSSDictionary::CreateNewDictionary(QTSSDictionaryMap* inMap, OSMutex* inMutex)
+QTSSDictionary* QTSSDictionary::CreateNewDictionary(
+	QTSSDictionaryMap* inMap, OSMutex* inMutex)
 {
     return NEW QTSSDictionary(inMap, inMutex);
 }
@@ -619,7 +623,7 @@ void    QTSSDictionary::SetNumValues(QTSS_AttributeID inAttrID, UInt32 inNumValu
     }
 }
 
-void    QTSSDictionary::SetVal( QTSS_AttributeID inAttrID,
+void QTSSDictionary::SetVal( QTSS_AttributeID inAttrID,
                                     void* inValueBuffer,
                                     UInt32 inBufferLen)
 { 
@@ -828,8 +832,10 @@ QTSSAttrInfoDict::AttrInfo  QTSSAttrInfoDict::sAttributes[] =
 };
 
 QTSSAttrInfoDict::QTSSAttrInfoDict()
-: QTSSDictionary(QTSSDictionaryMap::GetMap(QTSSDictionaryMap::kAttrInfoDictIndex)), fID(qtssIllegalAttrID)
-{}
+	: QTSSDictionary(QTSSDictionaryMap::GetMap(QTSSDictionaryMap::kAttrInfoDictIndex))
+	, fID(qtssIllegalAttrID){
+
+}
 
 QTSSAttrInfoDict::~QTSSAttrInfoDict() {}
 
@@ -874,7 +880,10 @@ void QTSSDictionaryMap::Initialize()
 }
 
 QTSSDictionaryMap::QTSSDictionaryMap(UInt32 inNumReservedAttrs, UInt32 inFlags)
-:   fNextAvailableID(inNumReservedAttrs), fNumValidAttrs(inNumReservedAttrs),fAttrArraySize(inNumReservedAttrs), fFlags(inFlags)
+	: fNextAvailableID(inNumReservedAttrs)
+	, fNumValidAttrs(inNumReservedAttrs)
+	, fAttrArraySize(inNumReservedAttrs)
+	, fFlags(inFlags)
 {
     if (fAttrArraySize < kMinArraySize)
         fAttrArraySize = kMinArraySize;
@@ -945,11 +954,12 @@ QTSS_Error QTSSDictionaryMap::AddAttribute( const char* inAttrName,
     return QTSS_NoErr;
 }
 
-void QTSSDictionaryMap::SetAttribute(   QTSS_AttributeID inID, 
-                                        const char* inAttrName,
-                                        QTSS_AttrFunctionPtr inFuncPtr,
-                                        QTSS_AttrDataType inDataType,
-                                        QTSS_AttrPermission inPermission )
+void QTSSDictionaryMap::SetAttribute(
+	QTSS_AttributeID inID, 
+    const char* inAttrName,
+    QTSS_AttrFunctionPtr inFuncPtr,
+    QTSS_AttrDataType inDataType,
+    QTSS_AttrPermission inPermission)
 {
     UInt32 theIndex = QTSSDictionaryMap::ConvertAttrIDToArrayIndex(inID);
     UInt32 theNameLen = ::strlen(inAttrName);

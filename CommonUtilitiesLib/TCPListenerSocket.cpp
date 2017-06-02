@@ -103,7 +103,6 @@ void TCPListenerSocket::ProcessEvent(int /*eventBits*/)
 	//fSocket data member of TCPSocket.
 	int osSocket = accept(fFileDesc, (struct sockaddr*) &addr, &size);
 
-//test osSocket = -1;
 	if (osSocket == -1)
 	{
 		//take a look at what this error is.
@@ -115,11 +114,6 @@ void TCPListenerSocket::ProcessEvent(int /*eventBits*/)
 			this->RequestEvent(EV_RE);
 			return;
 		}
-
-//test acceptError = ENFILE;
-//test acceptError = EINTR;
-//test acceptError = ENOENT;
-
 		//if these error gets returned, we're out of file desciptors,
 		//the server is going to be failing on sockets, logs, qtgroups and qtuser auth file accesses and movie files. The server is not functional.
 		if (acceptError == EMFILE || acceptError == ENFILE)
@@ -130,7 +124,6 @@ void TCPListenerSocket::ProcessEvent(int /*eventBits*/)
 					"Out of File Descriptors. Set max connections "
 					" lower and check for competing usage from other processes. Exiting.");
 #endif
-
 			exit (EXIT_FAILURE);
 		} else {
 			char errStr[256];
