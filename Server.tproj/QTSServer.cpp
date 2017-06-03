@@ -1045,25 +1045,25 @@ void QTSServer::BuildModuleRoleArrays()
 	// Loop through all the roles of all the modules, recording the number of
 	// modules in each role, and also recording which modules are doing what.
 
-	for (UInt32 x = 0; x < QTSSModule::kNumRoles; x++)
-	{
+	for (UInt32 x = 0; x < QTSSModule::kNumRoles; x++) {
 		sNumModulesInRole[x] = 0;
-		for (theIter.Reset(); !theIter.IsDone(); theIter.Next())
-		{
+		for (theIter.Reset();
+			!theIter.IsDone(); theIter.Next()) {
 			theModule =
-					(QTSSModule*) theIter.GetCurrent()->GetEnclosingObject();
+					(QTSSModule*) 
+					theIter.GetCurrent()->GetEnclosingObject();
 			if (theModule->RunsInRole(x))
 				sNumModulesInRole[x] += 1;
 		}
 
-		if (sNumModulesInRole[x] > 0)
-		{
+		if (sNumModulesInRole[x] > 0) {
 			UInt32 moduleIndex = 0;
 			sModuleArray[x] = new QTSSModule*[sNumModulesInRole[x] + 1];
-			for (theIter.Reset(); !theIter.IsDone(); theIter.Next())
-			{
+			for (theIter.Reset(); 
+				!theIter.IsDone(); theIter.Next()) {
 				theModule =
-						(QTSSModule*) theIter.GetCurrent()->GetEnclosingObject();
+						(QTSSModule*) 
+						theIter.GetCurrent()->GetEnclosingObject();
 				if (theModule->RunsInRole(x))
 				{
 					sModuleArray[x][moduleIndex] = theModule;

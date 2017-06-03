@@ -23,37 +23,6 @@ void QTSServer::InitModules(QTSS_ServerState inEndState)
 	LoadModules (fSrvrPrefs);
 	LoadCompiledInModules();
 	this->BuildModuleRoleArrays();
-
-	fSrvrPrefs->SetErrorLogVerbosity(qtssWarningVerbosity); // turn off info messages while initializing compiled in modules.
-	//
-	// CREATE MODULE OBJECTS AND READ IN MODULE PREFS
-
-	// Finish setting up modules. Create our final prefs & messages objects,
-	// register all global dictionaries, and invoke the modules in their Init roles.
-	fStubSrvrPrefs = fSrvrPrefs;
-	fStubSrvrMessages = fSrvrMessages;
-	// Now write changes to the prefs file. First time, we don't because the error messages won't get printed.
-	fSrvrPrefs = new QTSServerPrefs(sPrefsSource, true); 
-	// get the real prefs verbosity and save it.
-	QTSS_ErrorVerbosity serverLevel = fSrvrPrefs->GetErrorLogVerbosity(); 
-	// turn off info messages while loading dynamic modules
-	fSrvrPrefs->SetErrorLogVerbosity(qtssWarningVerbosity); 
-
-	fSrvrMessages = new QTSSMessages(sMessagesSource);
-	QTSSModuleUtils::Initialize(fSrvrMessages, this,
-			QTSServerInterface::GetErrorLogStream());
-
-	this->SetVal(qtssSvrMessages, &fSrvrMessages, sizeof(fSrvrMessages));
-	this->SetVal(qtssSvrPreferences, &fSrvrPrefs, sizeof(fSrvrPrefs));
-
-	//
-	// ADD REREAD PREFERENCES SERVICE
-	(void) QTSSDictionaryMap::GetMap(QTSSDictionaryMap::kServiceDictIndex)->AddAttribute(
-			QTSS_REREAD_PREFS_SERVICE,
-			(QTSS_AttrFunctionPtr) QTSServer::RereadPrefsService,
-			qtssAttrDataTypeUnknown, qtssAttrModeRead);
-
-	//
 	// INVOKE INITIALIZE ROLE
 	this->DoInitRole();
 
@@ -306,7 +275,7 @@ QTSS_Error _stublibrary_main(void* inPrivateArgs, QTSS_DispatchFuncPtr inDispatc
     return QTSS_NoErr;
 }
 /**
-8.1.3 将刚刚构造的QTSSModule添加到哪？
+8.1.3 将刚刚构造的QTSSModule添加到哪？添加到一个名叫sModuleQueue的队列
 在学习之AddModule函数之前我们先来认识一下前定义在QTSS_Private.h文件当中
 的如下两个结构体
 **/
@@ -580,4 +549,263 @@ void QTSServer::LoadCompiledInModules()
 注册成功后对应的QTSSModule::fRoleArray静态成员数组对应的标志位将会变成true.
 **/
 
+/**
+8.3 什么叫QTSS_Role? 在模块加载阶段每个模块初始化后都会对Server进行注册工作
+在注册的过程会调用QTSSModule::AddRole(QTSS_Role inRole)方法来告诉Server
+那些Role理应被当前模块支持,先来了解一下和QTSS_Role的数据类型
+**/
+/********************************************************************/
+// QTSS API ROLES
+//
+// Each role represents a unique situation in which a module may be
+// invoked. Modules must specify which roles they want to be invoked for. 
+// QTSS.h
+enum
+{
+    //Global
+    //reg  //All modules get this once at startup
+    QTSS_Register_Role =             FOUR_CHARS_TO_INT('r', 'e', 'g', ' '), 
+    //init //Gets called once, later on in the startup process
+    QTSS_Initialize_Role =           FOUR_CHARS_TO_INT('i', 'n', 'i', 't'), 
+    //shut //Gets called once at shutdown
+    QTSS_Shutdown_Role =             FOUR_CHARS_TO_INT('s', 'h', 'u', 't'), 
+    //elog //This gets called when the server wants to log an error.
+    QTSS_ErrorLog_Role =             FOUR_CHARS_TO_INT('e', 'l', 'o', 'g'), 
+    //pref //This gets called when the server rereads preferences.
+    QTSS_RereadPrefs_Role =          FOUR_CHARS_TO_INT('p', 'r', 'e', 'f'), 
+    //stat //This gets called whenever the server changes state.
+    QTSS_StateChange_Role =          FOUR_CHARS_TO_INT('s', 't', 'a', 't'), 
+    //timr //This gets called whenever the module's interval timer times out calls.
+    QTSS_Interval_Role =             FOUR_CHARS_TO_INT('t', 'i', 'm', 'r'), 
+    
+    //RTSP-specific
+    //filt //Filter all RTSP requests before the server parses them
+    QTSS_RTSPFilter_Role =           FOUR_CHARS_TO_INT('f', 'i', 'l', 't'), 
+    //rout //Route all RTSP requests to the correct root folder.
+    QTSS_RTSPRoute_Role =            FOUR_CHARS_TO_INT('r', 'o', 'u', 't'), 
+    //athn //Authenticate the RTSP request username.
+    QTSS_RTSPAuthenticate_Role =     FOUR_CHARS_TO_INT('a', 't', 'h', 'n'), 
+    //auth //Authorize RTSP requests to proceed
+    QTSS_RTSPAuthorize_Role =        FOUR_CHARS_TO_INT('a', 'u', 't', 'h'), 
+    //prep //Pre-process all RTSP requests before the server responds.
+    QTSS_RTSPPreProcessor_Role =     FOUR_CHARS_TO_INT('p', 'r', 'e', 'p'), 
+    //Modules may opt to "steal" the request and return a client response.
+    //requ //Process an RTSP request & send client response
+    QTSS_RTSPRequest_Role =          FOUR_CHARS_TO_INT('r', 'e', 'q', 'u'), 
+    //post //Post-process all RTSP requests
+    QTSS_RTSPPostProcessor_Role =    FOUR_CHARS_TO_INT('p', 'o', 's', 't'), 
+    //sesc //RTSP session is going away
+    QTSS_RTSPSessionClosing_Role =   FOUR_CHARS_TO_INT('s', 'e', 's', 'c'), 
+    //icmd //Incoming interleaved RTP data on this RTSP connection
+    QTSS_RTSPIncomingData_Role =     FOUR_CHARS_TO_INT('i', 'c', 'm', 'd'), 
+
+    //RTP-specific
+    //send //Send RTP packets to the client
+    QTSS_RTPSendPackets_Role =           FOUR_CHARS_TO_INT('s', 'e', 'n', 'd'), 
+    //dess //Client session is going away
+    QTSS_ClientSessionClosing_Role =     FOUR_CHARS_TO_INT('d', 'e', 's', 's'), 
+    
+    //RTCP-specific
+    //rtcp //Process all RTCP packets sent to the server
+    QTSS_RTCPProcess_Role =          FOUR_CHARS_TO_INT('r', 't', 'c', 'p'), 
+
+    //File system roles
+    //oppr
+    QTSS_OpenFilePreProcess_Role =  FOUR_CHARS_TO_INT('o', 'p', 'p', 'r'),  
+    //opfl
+    QTSS_OpenFile_Role =            FOUR_CHARS_TO_INT('o', 'p', 'f', 'l'),  
+    //adfl
+    QTSS_AdviseFile_Role =          FOUR_CHARS_TO_INT('a', 'd', 'f', 'l'),  
+    //rdfl
+    QTSS_ReadFile_Role =            FOUR_CHARS_TO_INT('r', 'd', 'f', 'l'),  
+    //clfl
+    QTSS_CloseFile_Role =           FOUR_CHARS_TO_INT('c', 'l', 'f', 'l'),  
+    //refl
+    QTSS_RequestEventFile_Role =    FOUR_CHARS_TO_INT('r', 'e', 'f', 'l'),  
+    
+};
+typedef UInt32 QTSS_Role;
+/**
+在QTSS中上面的联合体来表示QTSS_Role
+**/
+class QTSSModule: public QTSSDictionary, public Task {
+public:
+	//convert QTSS.h 4 char id roles to private role index
+	SInt32 GetPrivateRoleIndex(QTSS_Role apiRole);
+	// These enums allow roles to be stored in a more optimized way
+	// add new RoleNames to sRoleNames in QTSSModule.cpp for debugging
+	enum {
+		kInitializeRole = 0,
+		kShutdownRole = 1,
+		kRTSPFilterRole = 2,
+		kRTSPRouteRole = 3,
+		kRTSPAthnRole = 4,
+		kRTSPAuthRole = 5,
+		kRTSPPreProcessorRole = 6,
+		kRTSPRequestRole = 7,
+		kRTSPPostProcessorRole = 8,
+		kRTSPSessionClosingRole = 9,
+		kRTPSendPacketsRole = 10,
+		kClientSessionClosingRole = 11,
+		kRTCPProcessRole = 12,
+		kErrorLogRole = 13,
+		kRereadPrefsRole = 14,
+		kOpenFileRole = 15,
+		kOpenFilePreProcessRole = 16,
+		kAdviseFileRole = 17,
+		kReadFileRole = 18,
+		kCloseFileRole = 19,
+		kRequestEventFileRole = 20,
+		kRTSPIncomingDataRole = 21,
+		kStateChangeRole = 22,
+		kTimedIntervalRole = 23,
+
+		kNumRoles = 24
+	};
+	typedef UInt32 RoleIndex;
+
+	// Call this to activate this module in the specified role.
+	QTSS_Error AddRole(QTSS_Role inRole);
+
+	// This returns true if this module is supposed to run in the specified role.
+	Bool16 RunsInRole(RoleIndex inIndex) {
+		return fRoleArray[inIndex];
+	}
+private:
+	Bool16 fRoleArray[kNumRoles];
+};
+/**
+在QTSSModule中用fRoleArray数组来记录当前模块支持那些Role,对于每一种Role在QTSSModule
+中定义了一个enum枚举来和fRoleArray数组中的每一个索引一一对应,对应支持的Role在
+fRoleArray数组中对应的索引将会标识成true.另外使用GetPrivateRoleIndex函数来将
+QTSSModule类中定义的枚举和QTSS.h文件中定义的Role枚举一一进行映射,目前系统
+默认一共支持24种Role
+**/
+/**
+8.3 BuildModuleRoleArrays函数分析
+在分析BuildModuleRoleArrays函数之前先看看在QTSServerInterface
+类中定义的sModuleArray以及sNumModulesInRole
+**/
+class QTSServerInterface: public QTSSDictionary
+{
+protected:
+	//
+	// MODULE DATA
+	static QTSSModule** sModuleArray[QTSSModule::kNumRoles];
+	static UInt32 sNumModulesInRole[QTSSModule::kNumRoles];
+	static OSQueue sModuleQueue;
+};
+/**
+sModuleArray是一个QTSSModule*类型的二维数组,QTSSModule目前支持24种Roles
+这里sModuleArray二维数组用于记录对于24种Roles类型当中每一种类型的Roles
+拥有多少个QTSSModule模块,并将每一个QTSSModule指针记录在该二维数组当中,
+而sNumModulesInRole数组用于记录每一种类型的Roles拥有多少数量模块的数量
+**/
+void QTSServer::BuildModuleRoleArrays()
+{
+	OSQueueIter theIter(&sModuleQueue);
+	QTSSModule* theModule = NULL;
+
+	// Make sure these variables are cleaned out in case they've already been inited.
+	// 先清除sModuleArray和sNumModulesInRole数组
+	DestroyModuleRoleArrays();
+
+	// Loop through all the roles of all the modules, recording the number of
+	// modules in each role, and also recording which modules are doing what.
+	// 遍历sModuleQueue队列中的每一个元素,还记得sModuleQueue吗？
+	// 每一个模块可看成一个OSQueueElem然后在注册模块的时候会将自身加入
+	// 到sModuleQueue队列
+	for (UInt32 x = 0; x < QTSSModule::kNumRoles; x++) {
+	    //首先将每一种类型的Role所关联的模块数量计为0个
+		sNumModulesInRole[x] = 0;
+		for (theIter.Reset();
+			!theIter.IsDone(); theIter.Next()) {
+			theModule =
+					(QTSSModule*) 
+					theIter.GetCurrent()->GetEnclosingObject();
+			//如果遍历出来的QTSSModule注册了x对应的Role那么将
+			//sNumModulesInRole[x]+1,这里就是将计数加1,表示
+			//该类型的Role所关联的模块数量加1
+			if (theModule->RunsInRole(x))
+				sNumModulesInRole[x] += 1;
+		}
+        //如果x类型的Role所关联的模块数量大于0
+		if (sNumModulesInRole[x] > 0) {
+			UInt32 moduleIndex = 0;
+			//为sModuleArray[x]分配sNumModulesInRole[x] + 1大小的空间
+			//假设这里x类型的Role关联了10个模块,那么这里就要分配11个大小
+			//的QTSSModule给sModuleArray[x]
+			sModuleArray[x] = new QTSSModule*[sNumModulesInRole[x] + 1];
+			//再次对队列进行遍历,然后对满足条件的元素(也就是说该模块和x对应的Role有关联)
+			//将其记录到sModuleArray[x][moduleIndex]当中
+			//sModuleArray是一个二维数组
+			for (theIter.Reset(); !theIter.IsDone();
+			     theIter.Next()) {
+				theModule =
+						(QTSSModule*) 
+						theIter.GetCurrent()->GetEnclosingObject();
+				if (theModule->RunsInRole(x)) {
+					sModuleArray[x][moduleIndex] = theModule;
+					moduleIndex++;
+				}
+			}
+		}
+	}
+}
+/**
+BuildModuleRoleArrays函数的工作就是将各大模块按照Role类型将各模块
+记录到sModuleArray二维数组当中
+**/
+void QTSServer::DoInitRole()
+{
+	QTSS_RoleParams theInitParams;
+	theInitParams.initParams.inServer = this;
+	theInitParams.initParams.inPrefs = fSrvrPrefs;
+	theInitParams.initParams.inMessages = fSrvrMessages;
+	theInitParams.initParams.inErrorLogStream = &sErrorLogStream;
+
+	QTSS_ModuleState theModuleState;
+	theModuleState.curRole = QTSS_Initialize_Role;
+	theModuleState.curTask = NULL;
+	OSThread::SetMainThreadData(&theModuleState);
+
+	//
+	// Add the OPTIONS method as the one method the server handles by default (it handles
+	// it internally). Modules that handle other RTSP methods will add
+	QTSS_RTSPMethod theOptionsMethod = qtssOptionsMethod;
+	(void) this->SetValue(qtssSvrHandledMethods, 0, &theOptionsMethod,
+			sizeof(theOptionsMethod));
+
+// For now just disable the SetParameter to be compatible with Real.  It should really be removed only for clients that have problems with their SetParameter implementations like (Real Players).
+// At the moment it isn't necesary to add the option.
+//   QTSS_RTSPMethod	theSetParameterMethod = qtssSetParameterMethod;
+//    (void)this->SetValue(qtssSvrHandledMethods, 0, &theSetParameterMethod, sizeof(theSetParameterMethod));
+
+	for (UInt32 x = 0;
+			x
+					< QTSServerInterface::GetNumModulesInRole(
+							QTSSModule::kInitializeRole); x++)
+	{
+		QTSSModule* theModule = QTSServerInterface::GetModule(
+				QTSSModule::kInitializeRole, x);
+		theInitParams.initParams.inModule = theModule;
+		theModuleState.curModule = theModule;
+		QTSS_Error theErr = theModule->CallDispatch(QTSS_Initialize_Role,
+				&theInitParams);
+
+		if (theErr != QTSS_NoErr)
+		{
+			// If the module reports an error when initializing itself,
+			// delete the module and pretend it was never there.
+			QTSSModuleUtils::LogError(qtssWarningVerbosity, qtssMsgInitFailed,
+					theErr, theModule->GetValue(qtssModName)->Ptr);
+
+			sModuleQueue.Remove(theModule->GetQueueElem());
+			delete theModule;
+		}
+	}
+	this->SetupPublicHeader();
+
+	OSThread::SetMainThreadData (NULL);
+}
 
