@@ -447,3 +447,141 @@ void QTSSDictionary::SetVal(QTSS_AttributeID inAttrID,
 /*
 到此QTSSDictionaryMap::Initialize()过程就算分析完了
 */
+class QTSSAttrInfoDict: public QTSSDictionary
+{
+public:
+
+	struct AttrInfo
+	{
+		// This is all the relevent information for each dictionary
+		// attribute.
+		char fAttrName[QTSS_MAX_ATTRIBUTE_NAME_SIZE + 1];
+		QTSS_AttrFunctionPtr fFuncPtr;
+		QTSS_AttrDataType fAttrDataType;
+		QTSS_AttrPermission fAttrPermission;
+	};
+
+	QTSSAttrInfoDict();
+	virtual ~QTSSAttrInfoDict();
+
+private:
+
+	AttrInfo fAttrInfo;
+	QTSS_AttributeID fID;
+
+	static AttrInfo sAttributes[];
+
+	friend class QTSSDictionaryMap;
+
+};
+//kServerDictIndex
+class QTSServerInterface: public QTSSDictionary
+{
+public:
+    static void Initialize();
+};
+//kPrefsDictIndex
+class QTSServerPrefs : public QTSSPrefs
+{
+public:
+    static void Initialize();
+};
+
+//kTextMessagesDictIndex
+class QTSSMessages : public QTSSDictionary
+{
+public:
+    static void Initialize();
+};
+
+//kServiceDictIndex
+class QTSSPrefs : public QTSSDictionary
+{
+};
+
+//kRTPStreamDictIndex
+class RTPStream : public QTSSDictionary, public UDPDemuxerTask
+{
+public:
+    static void Initialize();
+};
+
+//kClientSessionDictIndex
+class RTPSessionInterface : public QTSSDictionary, public Task
+{
+public:
+    // Initializes dictionary resources
+    static void Initialize();
+};
+
+//kRTSPSessionDictIndex
+class RTSPSessionInterface : public QTSSDictionary, public Task
+{
+public:
+    //Initialize must be called right off the bat to initialize dictionary resources
+    static void     Initialize();
+};   
+
+//kRTSPRequestDictIndex
+class RTSPRequestInterface : public QTSSDictionary
+{
+public:
+    static void         Initialize();
+protected:
+    //kRTSPHeaderDictIndex    
+    QTSSDictionary      fHeaderDictionary;
+};  
+
+//kFileDictIndex
+class QTSSFile : public QTSSDictionary
+{
+public:
+    static void Initialize();
+};
+
+//kModuleDictIndex
+class QTSSModule: public QTSSDictionary, public Task {
+public:
+	static void Initialize();
+};
+
+//kQTSSUserProfileDictIndex
+class QTSSUserProfile : public QTSSDictionary
+{
+public:
+    static void         Initialize();
+};
+
+class RTPSession3GPP : public QTSSDictionary
+{
+public:
+    static void         Initialize();
+};
+
+
+class RTPStream3GPP : public QTSSDictionary
+{
+public:
+    // Initializes dictionary resources
+    static void Initialize();
+};
+
+class RTSPRequest3GPP : public QTSSDictionary
+{
+public:
+    //Initialize
+    static void         Initialize();
+};
+
+
+
+class RTSPSession3GPP : public QTSSDictionary
+{
+public:
+    //Initialize
+    //Call initialize before instantiating this class: see QTSServer.cpp.
+    static void         Initialize();
+};
+
+ 
+      
