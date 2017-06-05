@@ -1,12 +1,333 @@
+/**
+2.1 认识QTS中的数据类型和各数据类型所具有的属性
+在QTSS.h文件中定义了QTServer中所支持的数据类型以及属性
+**/
+typedef void*                   QTSS_Object;
+typedef QTSS_Object             QTSS_RTPStreamObject;
+typedef QTSS_Object             QTSS_RTSPSessionObject;
+typedef QTSS_Object             QTSS_RTSPRequestObject;
+typedef QTSS_Object             QTSS_RTSPHeaderObject;
+typedef QTSS_Object             QTSS_ClientSessionObject;
+typedef QTSS_Object             QTSS_ServerObject;
+typedef QTSS_Object             QTSS_PrefsObject;
+typedef QTSS_Object             QTSS_TextMessagesObject;
+typedef QTSS_Object             QTSS_FileObject;
+typedef QTSS_Object             QTSS_ModuleObject;
+typedef QTSS_Object             QTSS_ModulePrefsObject;
+typedef QTSS_Object             QTSS_AttrInfoObject;
+typedef QTSS_Object             QTSS_UserProfileObject;
+typedef QTSS_Object             QTSS_ConnectedUserObject;
+
+typedef QTSS_Object             QTSS_3GPPStreamObject;
+typedef QTSS_Object             QTSS_3GPPClientSessionObject;
+typedef QTSS_Object             QTSS_3GPPRTSPSessionObject;
+typedef QTSS_Object             QTSS_3GPPRequestObject;
+/**
+在QTServer中所有的各大数据类型用QTSS_Object来描述,而QTSS_Object其实就是一个
+void*,同时针对每一个数据类型都定义了对应的属性,它们的定义如下:
+**/
+typedef UInt32 QTSS_RTPStreamAttributes;
+
+typedef UInt32 QTSS_RTPStream3GPPAttributes;
+
+typedef UInt32 QTSS_ClientSessionAttributes;
+
+typedef UInt32 QTSS_ClientSession3GPPAttributes;
+
+typedef UInt32 QTSS_RTSPSessionAttributes;
+
+typedef UInt32 QTSS_3GPPRTSPSessionAttributes;
+
+typedef UInt32 QTSS_RTSPRequestAttributes;
+
+typedef UInt32 QTSS_RTSPRequest3GPPAttributes;
+
+typedef UInt32 QTSS_ServerAttributes;
+
+typedef UInt32 QTSS_PrefsAttributes;
+
+typedef UInt32 QTSS_TextMessagesAttributes;
+
+typedef UInt32 QTSS_FileObjectAttributes;
+
+typedef UInt32 QTSS_ModuleObjectAttributes;
+
+typedef UInt32 QTSS_AttrInfoObjectAttributes;
+
+typedef UInt32 QTSS_UserProfileObjectAttributes;
+
+typedef UInt32 QTSS_ConnectedUserObjectAttributes;
+/**
+从上述定义可以看出当前,QTSServer中默认支持18种数据类型,同时支持18种一一对应的属性
+并且针对每一种数据类型的属性都拥有不同数量的属性记录数量定义在相应的枚举中,
+以QTSS_3GPPStreamObject这种数据类型为例它对应的属性定义为QTSS_RTPStream3GPPAttributes,
+其枚举定义
+**/
+enum 
+{
+    //All text names are identical to the enumerated type names
+    qtss3GPPStreamEnabled               = 0,
+    qtss3GPPStreamRateAdaptBufferBytes  = 1,
+    qtss3GPPStreamRateAdaptTimeMilli    = 2,
+    qtss3GPPStreamNumParams             = 3
+};
+typedef UInt32 QTSS_RTPStream3GPPAttributes; //QTSS_3GPPStreamObject
+/**
+对于QTSS_RTPStream3GPPAttributes属性定义了3条记录分别为qtss3GPPStreamEnabled,
+qtss3GPPStreamRateAdaptBufferBytes,qtss3GPPStreamRateAdaptTimeMilli,而对于
+属性中的每一条记录都用一个QTSSAttrInfoDict类来描述,称作为每条记录所包含的信息,它的定义
+如下:
+**/
+class QTSSAttrInfoDict: public QTSSDictionary
+{
+public:
+	struct AttrInfo
+	{
+		// This is all the relevent information for each dictionary
+		// attribute.
+		char fAttrName[QTSS_MAX_ATTRIBUTE_NAME_SIZE + 1];
+		QTSS_AttrFunctionPtr fFuncPtr;
+		QTSS_AttrDataType fAttrDataType;
+		QTSS_AttrPermission fAttrPermission;
+	};
+	QTSSAttrInfoDict();
+	virtual ~QTSSAttrInfoDict();
+private:
+	AttrInfo fAttrInfo;
+	QTSS_AttributeID fID;
+
+	static AttrInfo sAttributes[];
+
+	friend class QTSSDictionaryMap;
+};
+/**
+QTSSAttrInfoDict的定义告诉我们,所有用QTSSAttrInfoDict描述的记录都包含了一个AttrInfo结构体
+该结构体里面记录了四条属性参数分别为,记录名字,记录函数指针,记录数据类型,记录权限,所以对应的
+每一类属性对应的每一条记录都应该包含(名字,函数指针,数据类型,权限),同时QTSSAttrInfoDict又是
+QTSSDictionary的子类,所以也可以将每一类属性对应的每一条记录看成一个QTSSDictionary,同时每一种
+数据类型也是直接或者派生对应着一个QTSSDictionary类,除此之外其他数据类型对应的实类如下:
+**/
+//kRTPStreamDictIndex, QTSS_RTPStreamObject
+class RTPStream : public QTSSDictionary, public UDPDemuxerTask
+{
+public:
+    static void Initialize();
+};
+
+//kRTSPSessionDictIndex,QTSS_RTSPSessionObject
+class RTSPSessionInterface : public QTSSDictionary, public Task
+{
+public:
+    //Initialize must be called right off the bat to initialize dictionary resources
+    static void     Initialize();
+};   
+
+//kRTSPRequestDictIndex,QTSS_RTSPRequestObject
+class RTSPRequestInterface : public QTSSDictionary
+{
+public:
+    static void         Initialize();
+protected:
+    //kRTSPHeaderDictIndex,QTSS_RTSPHeaderObject    
+    QTSSDictionary      fHeaderDictionary;
+}; 
+
+//kClientSessionDictIndex,QTSS_ClientSessionObject
+class RTPSessionInterface : public QTSSDictionary, public Task
+{
+public:
+    // Initializes dictionary resources
+    static void Initialize();
+};
+
+//kServerDictIndex,QTSS_ServerObject
+//kQTSSConnectedUserDictIndex,QTSS_ConnectedUserObject
+class QTSServerInterface: public QTSSDictionary
+{
+public:
+	//Initialize must be called right off the bat
+	// to initialize dictionary resources
+	static void Initialize();
+};
+
+//kPrefsDictIndex,QTSS_PrefsObject
+//kModulePrefsDictIndex,QTSS_ModulePrefsObject
+class QTSSPrefs : public QTSSDictionary
+{
+};
+
+class QTSServerPrefs : public QTSSPrefs
+{
+public:
+    static void Initialize();
+};
+
+//kTextMessagesDictIndex,QTSS_TextMessagesObject
+class QTSSMessages : public QTSSDictionary
+{
+public:
+    static void Initialize();
+};
+
+//kFileDictIndex,QTSS_FileObject
+class QTSSFile : public QTSSDictionary
+{
+public:
+    static void Initialize();
+};
+
+//kModuleDictIndex,QTSS_ModuleObject
+class QTSSModule: public QTSSDictionary, public Task {
+public:
+	static void Initialize();
+};
+
+//kQTSSUserProfileDictIndex,QTSS_UserProfileObject
+class QTSSUserProfile : public QTSSDictionary
+{
+public:
+    static void         Initialize();
+};
+
+//k3GPPRequestDictIndex,QTSS_3GPPRequestObject
+class RTSPRequest3GPP : public QTSSDictionary
+{
+public:
+    //Initialize
+    static void         Initialize();
+};
+
+//k3GPPStreamDictIndex,QTSS_3GPPStreamObject
+class RTPStream3GPP : public QTSSDictionary
+{
+public:
+    // Initializes dictionary resources
+    static void Initialize();
+};
+
+//k3GPPClientSessionDictIndex,QTSS_3GPPClientSessionObject
+class RTPSession3GPP : public QTSSDictionary
+{
+public:
+    static void         Initialize();
+};
+
+//k3GPPRTSPSessionDictIndex,QTSS_3GPPRTSPSessionObject
+class RTSPSession3GPP : public QTSSDictionary
+{
+public:
+    //Initialize
+    //Call initialize before instantiating this class: see QTSServer.cpp.
+    static void         Initialize();
+};
+/**
+由上面的分析我们可以得出,在QTSS中每一种QTSS_Object数据类型对应有一种属性类对应是
+QTSSDictionary的子类或者是QTSSDictionary的派生类,然后每一种属性都有若干条记录
+每一条记录也是一个QTSSDictionary子类(QTSSAttrInfoDict),那么这些属性都用什么统一
+来管理呢?QTSSDictionaryMap来了
+**/
 /*****************************************************
-2.5 首先看QTSSDictionaryMap的初始化过程
+2.2 认识QTSSDictionaryMap,定义在QTSSDictionary.h中
 ******************************************************/
+class QTSSDictionaryMap
+{
+public:
+	//
+	// This must be called before using any QTSSDictionary or QTSSDictionaryMap functionality
+	static void Initialize();
+	// Stores all meta-information for attributes
+    // This enum allows all QTSSDictionaryMaps to be stored in an array 
+    enum
+    {
+        kServerDictIndex                = 0,
+        kPrefsDictIndex                 = 1,
+        kTextMessagesDictIndex          = 2,
+        kServiceDictIndex               = 3,
+        
+        kRTPStreamDictIndex             = 4,
+        kClientSessionDictIndex         = 5,
+        kRTSPSessionDictIndex           = 6,
+        kRTSPRequestDictIndex           = 7,
+        kRTSPHeaderDictIndex            = 8,
+        kFileDictIndex                  = 9,
+        kModuleDictIndex                = 10,
+        kModulePrefsDictIndex           = 11,
+        kAttrInfoDictIndex              = 12,
+        kQTSSUserProfileDictIndex       = 13,
+        kQTSSConnectedUserDictIndex     = 14,
+        k3GPPRequestDictIndex           = 15,
+        k3GPPStreamDictIndex            = 16,
+        k3GPPClientSessionDictIndex     = 17,
+        k3GPPRTSPSessionDictIndex       = 18,
+
+        kNumDictionaries                = 19,
+        
+        kNumDynamicDictionaryTypes      = 500,
+        kIllegalDictionary              = kNumDynamicDictionaryTypes + kNumDictionaries
+    };	
+	//
+	// CONSTRUCTOR / DESTRUCTOR
+
+	QTSSDictionaryMap(UInt32 inNumReservedAttrs, UInt32 inFlags = kNoFlags);
+	~QTSSDictionaryMap()
+	{
+		for (UInt32 i = 0; i < fAttrArraySize; i++)
+			delete fAttrArray[i];
+		delete[] fAttrArray;
+	}
+	
+	// MODIFIERS
+
+	// Sets this attribute ID to have this information
+
+	void SetAttribute(QTSS_AttributeID inID, const char* inAttrName,
+			QTSS_AttrFunctionPtr inFuncPtr, QTSS_AttrDataType inDataType,
+			QTSS_AttrPermission inPermission);	
+	
+	// This function converts a QTSS_ObjectType to an index
+	static UInt32 GetMapIndex(QTSS_ObjectType inType);
+
+	// Using one of the above predefined indexes, this returns the corresponding map
+	static QTSSDictionaryMap* GetMap(UInt32 inIndex)
+	{
+		Assert(inIndex < kNumDynamicDictionaryTypes + kNumDictionaries);
+		return sDictionaryMaps[inIndex];
+	}
+
+	static QTSS_ObjectType CreateNewMap();
+private:
+	//
+	// Repository for dictionary maps
+	static QTSSDictionaryMap* sDictionaryMaps[kNumDictionaries
+			+ kNumDynamicDictionaryTypes];
+	static UInt32 sNextDynamicMap;
+	enum
+	{
+		kMinArraySize = 20
+	};
+	UInt32 fNextAvailableID;
+	UInt32 fNumValidAttrs;
+	UInt32 fAttrArraySize;
+	QTSSAttrInfoDict** fAttrArray;
+	UInt32 fFlags;
+	friend class QTSSDictionary;
+};
+/**
+对于每一个属性类都会创建一个QTSSDictionaryMap实例,然后存储到sDictionaryMaps数组当中
+通过GetMapIndex传递对应属性类的索引来获取当前属性类的实例QTSSDictionaryMap对应的索引,
+使用GetMap传递索引号来获得当前的QTSSDictionaryMap实例而在上面说过,对应每一类属性类,
+有多条记录,每一条记录都用一个QTSSAttrInfoDict*指针来描述,这里所有的QTSSAttrInfoDict*指针
+都存储在fAttrArray二维指针当中.对于QTSSDictionaryMap中定义的枚举类型,代表每一种属性类型
+所对应的QTSSDictionaryMap实例在sDictionaryMaps二维指针中的索引
+**/
+/**
+2.3 QTSSDictionaryMap::Initialize静态初始化
+**/
 void QTSSDictionaryMap::Initialize()
 {
     //
     // Have to do this one first because this dict map is used by all the other
     // dict maps.
-    
     sDictionaryMaps[kAttrInfoDictIndex]     = new QTSSDictionaryMap(qtssAttrInfoNumParams);
     // Setup the Attr Info attributes before constructing any other dictionaries
     for (UInt32 x = 0; x < qtssAttrInfoNumParams; x++)
@@ -41,68 +362,13 @@ void QTSSDictionaryMap::Initialize()
     sDictionaryMaps[k3GPPRTSPSessionDictIndex] = new QTSSDictionaryMap(qtss3GPPRTSPSessNumParams);
 }
 /**
-2.5.1.QTSSDictionaryMap定义解析....
-sDictionaryMaps为class QTSSDictionaryMap中的静态指针数组,定义如下
-QTSSDictionaryMap* QTSSDictionaryMap::sDictionaryMaps[kNumDictionaries + kNumDynamicDictionaryTypes];
-其中kNumDictionaries和kNumDynamicDictionaryTypes的值分别为19和500在class QTSSDictionaryMap中同时也定义
-了一个枚举类型它的值分别是kServerDictIndex～kIllegalDictionary从上述初始化函数以及class QTSSDictionaryMap
-的成员变量我们可以看出在DSS中对应的每一个kServerDictIndex～k3GPPRTSPSessionDictIndex的enum索引都将在此分配
-一个QTSSDictionaryMap实例,并且class QTSSDictionaryMap也提供了GetMap(UInt32 inIndex)成员方法用于访问每一个
-索引对应的QTSSDictionaryMap实例子,其中QTSSDictionaryMap定义如下:
+初始化过程主要就是为每种属性类型new 一个QTSSDictionaryMap实例,然后按照索引存储到sDictionaryMaps
+二维指针当中,再就是回调QTSSDictionaryMap::SetAttribute设置相关的静态属性.在分析如何配置静态属性
+之前我们先来分析一些QTSSDictionaryMap的构造函数
 **/
-class QTSSDictionaryMap
-{
-public:
-    static void Initialize();
-    // This enum allows all QTSSDictionaryMaps to be stored in an array 
-    enum
-    {
-        kServerDictIndex                = 0,
-        kPrefsDictIndex                 = 1,
-        kTextMessagesDictIndex          = 2,
-        kServiceDictIndex               = 3,
-        
-        kRTPStreamDictIndex             = 4,
-        kClientSessionDictIndex         = 5,
-        kRTSPSessionDictIndex           = 6,
-        kRTSPRequestDictIndex           = 7,
-        kRTSPHeaderDictIndex            = 8,
-        kFileDictIndex                  = 9,
-        kModuleDictIndex                = 10,
-        kModulePrefsDictIndex           = 11,
-        kAttrInfoDictIndex              = 12,
-        kQTSSUserProfileDictIndex       = 13,
-        kQTSSConnectedUserDictIndex     = 14,
-        k3GPPRequestDictIndex           = 15,
-        k3GPPStreamDictIndex            = 16,
-        k3GPPClientSessionDictIndex     = 17,
-        k3GPPRTSPSessionDictIndex       = 18,
-
-        kNumDictionaries                = 19,
-        
-        kNumDynamicDictionaryTypes      = 500,
-        kIllegalDictionary              = kNumDynamicDictionaryTypes + kNumDictionaries
-    };
-    // Using one of the above predefined indexes, 
-    //this returns the corresponding map
-    static QTSSDictionaryMap*       GetMap(UInt32 inIndex)
-private:
-	//
-	// Repository for dictionary maps
-	static QTSSDictionaryMap* sDictionaryMaps[kNumDictionaries
-			+ kNumDynamicDictionaryTypes];	
-	enum
-	{
-		kMinArraySize = 20
-	};		
-	UInt32 fAttrArraySize;
-	QTSSAttrInfoDict** fAttrArray;	
-};
 
 /***
-2.5.2.QTSSDictionaryMap构造函数分析
-在QTSSDictionaryMap::Initialize()函数中要对每一个enum对应的索引都分配一个QTSSDictionaryMap实例
-那么在它的构造函数中都做了一些什么?QTSSDictionaryMap构造函数如下
+2.4.QTSSDictionaryMap构造函数分析
 ****/
 QTSSDictionaryMap::QTSSDictionaryMap(UInt32 inNumReservedAttrs, UInt32 inFlags)
 	: fNextAvailableID(inNumReservedAttrs)
@@ -144,126 +410,15 @@ private:
 	static AttrInfo sAttributes[];
 	friend class QTSSDictionaryMap;
 };
-/**
-QTSSAttrInfoDict的定义告诉我们,所有用QTSSAttrInfoDict描述的数据类型都包含了一个AttrInfo结构体
-该结构体里面记录了四条属性参数分别为,属性名字,属性函数指针,属性数据类型,属性权限
-**/
+
 
 /**
 2.5.3. QTSS默认有多少种数据类型?(也就是有多少个QTSSDictionaryMap实例),每一种数据类型对应多少条属性?
 (也就是对应有多少个QTSSAttrInfoDict实例)回到QTSSDictionaryMap::Initialize()函数中结合QTSSDictionaryMap
 构造函数的传参过程找到它传入参数的定义的地方在apistublib/QTSS.h文件当中,DSS将所有的数据类型分类如下
 **/
-enum
-{
-    //QTSS_RTPStreamObject parameters. All of these are preemptive safe.
-    qtssRTPStrNumParams             = 41 /*QTSS_RTPStreamAttributes 数据类型包含41条属性*/
-};
-typedef UInt32 QTSS_RTPStreamAttributes;
 
-enum 
-{
-    qtss3GPPStreamNumParams             = 3
-};
-typedef UInt32 QTSS_RTPStream3GPPAttributes; //QTSS_3GPPStreamObject
 
-enum
-{
-    //QTSS_ClientSessionObject parameters. All of these are preemptive safe
-    qtssCliSesNumParams             = 40
-};
-typedef UInt32 QTSS_ClientSessionAttributes;
-
-enum 
-{
-    qtss3GPPCliSesNumParams                         = 5
-};
-typedef UInt32 QTSS_ClientSession3GPPAttributes;
-
-enum
-{
-    //QTSS_RTSPSessionObject parameters
-    qtssRTSPSesNumParams    = 16
-};
-typedef UInt32 QTSS_RTSPSessionAttributes;
-
-enum 
-{
-    qtss3GPPRTSPSesEnabled           = 0,
-    qtss3GPPRTSPSessNumParams        = 1
-};
-typedef UInt32 QTSS_3GPPRTSPSessionAttributes;
-
-enum 
-{
-    //All text names are identical to the enumerated type names
-    //QTSS_RTSPRequestObject parameters. All of these are pre-emptive safe parameters
-    qtssRTSPReqNumParams            = 44 
-};
-typedef UInt32 QTSS_RTSPRequestAttributes;
-
-enum 
-{
-    qtss3GPPRequestNumParams             = 2
-};
-typedef UInt32 QTSS_RTSPRequest3GPPAttributes;
-
-enum
-{
-    //QTSS_ServerObject parameters
-    qtssSvrNumParams                = 43
-};
-typedef UInt32 QTSS_ServerAttributes;
-
-enum
-{
-    //QTSS_PrefsObject parameters	
-    qtssPrefsNumParams                      = 90
-};
-typedef UInt32 QTSS_PrefsAttributes;
-
-enum
-{
-    //QTSS_TextMessagesObject parameters
-    qtssMsgNumParams                = 44
-    
-};
-typedef UInt32 QTSS_TextMessagesAttributes;
-
-enum
-{
-    //QTSS_FileObject parameters
-    qtssFlObjNumParams              = 5
-};
-typedef UInt32 QTSS_FileObjectAttributes;
-
-enum
-{
-    //QTSS_ModuleObject parameters       
-    qtssModNumParams            = 6
-};
-typedef UInt32 QTSS_ModuleObjectAttributes;
-
-enum
-{
-    //QTSS_AttrInfoObject parameters
-    qtssAttrInfoNumParams           = 4
-};
-typedef UInt32 QTSS_AttrInfoObjectAttributes;
-
-enum
-{
-    //QTSS_UserProfileObject parameters
-    qtssUserNumParams           = 7,
-};
-typedef UInt32 QTSS_UserProfileObjectAttributes;
-
-enum
-{
-    //QTSS_ConnectedUserObject parameters
-    qtssConnectionNumParams             = 11
-};
-typedef UInt32 QTSS_ConnectedUserObjectAttributes;
 
 /**
 2.5.4.QTSSAttrInfoDict的配置和读取,再回到QTSSDictionaryMap::Initialize()函数在创建kAttrInfoDictIndex
@@ -474,114 +629,7 @@ private:
 	friend class QTSSDictionaryMap;
 
 };
-//kServerDictIndex
-class QTSServerInterface: public QTSSDictionary
-{
-public:
-    static void Initialize();
-};
-//kPrefsDictIndex
-class QTSServerPrefs : public QTSSPrefs
-{
-public:
-    static void Initialize();
-};
 
-//kTextMessagesDictIndex
-class QTSSMessages : public QTSSDictionary
-{
-public:
-    static void Initialize();
-};
-
-//kServiceDictIndex
-class QTSSPrefs : public QTSSDictionary
-{
-};
-
-//kRTPStreamDictIndex
-class RTPStream : public QTSSDictionary, public UDPDemuxerTask
-{
-public:
-    static void Initialize();
-};
-
-//kClientSessionDictIndex
-class RTPSessionInterface : public QTSSDictionary, public Task
-{
-public:
-    // Initializes dictionary resources
-    static void Initialize();
-};
-
-//kRTSPSessionDictIndex
-class RTSPSessionInterface : public QTSSDictionary, public Task
-{
-public:
-    //Initialize must be called right off the bat to initialize dictionary resources
-    static void     Initialize();
-};   
-
-//kRTSPRequestDictIndex
-class RTSPRequestInterface : public QTSSDictionary
-{
-public:
-    static void         Initialize();
-protected:
-    //kRTSPHeaderDictIndex    
-    QTSSDictionary      fHeaderDictionary;
-};  
-
-//kFileDictIndex
-class QTSSFile : public QTSSDictionary
-{
-public:
-    static void Initialize();
-};
-
-//kModuleDictIndex
-class QTSSModule: public QTSSDictionary, public Task {
-public:
-	static void Initialize();
-};
-
-//kQTSSUserProfileDictIndex
-class QTSSUserProfile : public QTSSDictionary
-{
-public:
-    static void         Initialize();
-};
-
-class RTPSession3GPP : public QTSSDictionary
-{
-public:
-    static void         Initialize();
-};
-
-
-class RTPStream3GPP : public QTSSDictionary
-{
-public:
-    // Initializes dictionary resources
-    static void Initialize();
-};
-
-class RTSPRequest3GPP : public QTSSDictionary
-{
-public:
-    //Initialize
-    static void         Initialize();
-};
-
-
-
-class RTSPSession3GPP : public QTSSDictionary
-{
-public:
-    //Initialize
-    //Call initialize before instantiating this class: see QTSServer.cpp.
-    static void         Initialize();
-};
 
  
       

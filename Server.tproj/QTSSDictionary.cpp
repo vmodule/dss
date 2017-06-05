@@ -42,7 +42,8 @@
 
 #include <errno.h>
 
-QTSSDictionary::QTSSDictionary(QTSSDictionaryMap* inMap, OSMutex* inMutex) 
+QTSSDictionary::QTSSDictionary(QTSSDictionaryMap* inMap, 
+	OSMutex* inMutex) 
 	: fAttributes(NULL)
 	, fInstanceAttrs(NULL)
 	, fInstanceArraySize(0)
@@ -832,7 +833,8 @@ QTSSAttrInfoDict::AttrInfo  QTSSAttrInfoDict::sAttributes[] =
 };
 
 QTSSAttrInfoDict::QTSSAttrInfoDict()
-	: QTSSDictionary(QTSSDictionaryMap::GetMap(QTSSDictionaryMap::kAttrInfoDictIndex))
+	: QTSSDictionary(
+	  QTSSDictionaryMap::GetMap(QTSSDictionaryMap::kAttrInfoDictIndex))
 	, fID(qtssIllegalAttrID){
 
 }

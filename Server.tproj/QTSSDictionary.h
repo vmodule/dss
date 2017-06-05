@@ -62,7 +62,8 @@ public:
 	//
 	// CONSTRUCTOR / DESTRUCTOR
 
-	QTSSDictionary(QTSSDictionaryMap* inMap, OSMutex* inMutex = NULL);
+	QTSSDictionary(QTSSDictionaryMap* inMap, 
+		OSMutex* inMutex = NULL);
 	virtual ~QTSSDictionary();
 
 	//
