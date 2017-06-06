@@ -624,9 +624,9 @@ void    QTSSDictionary::SetNumValues(QTSS_AttributeID inAttrID, UInt32 inNumValu
     }
 }
 
-void QTSSDictionary::SetVal( QTSS_AttributeID inAttrID,
-                                    void* inValueBuffer,
-                                    UInt32 inBufferLen)
+void QTSSDictionary::SetVal(QTSS_AttributeID inAttrID,
+                                void* inValueBuffer,
+                                UInt32 inBufferLen)
 { 
     Assert(inAttrID >= 0);
     Assert(fMap);

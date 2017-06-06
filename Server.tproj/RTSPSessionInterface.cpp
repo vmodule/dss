@@ -75,7 +75,6 @@ QTSSAttrInfoDict::AttrInfo  RTSPSessionInterface::sAttributes[] =
     
     /* 15 */{ "qtssRTSPSesLastDigestChallenge",NULL,        qtssAttrDataTypeCharArray,  qtssAttrModeRead | qtssAttrModePreempSafe  }
     
-
 };
 
 

@@ -53,11 +53,13 @@ char* QTSServerPrefs::sAdditionalDefaultPorts[] =
     NULL
 };
 
+
 char* QTSServerPrefs::sRTP_Header_Players[] =
 {
 	"Real",
     NULL
 };
+
 
 char* QTSServerPrefs::sAdjust_Bandwidth_Players[] =
 {
@@ -385,11 +387,13 @@ QTSServerPrefs::QTSServerPrefs(XMLPrefsParser* inPrefsSource, Bool16 inWriteMiss
 void QTSServerPrefs::Initialize()
 {
     for (UInt32 x = 0; x < qtssPrefsNumParams; x++)
-        QTSSDictionaryMap::GetMap(QTSSDictionaryMap::kPrefsDictIndex)->
-            SetAttribute(x, sAttributes[x].fAttrName, sAttributes[x].fFuncPtr,
-                            sAttributes[x].fAttrDataType, sAttributes[x].fAttrPermission);
+        QTSSDictionaryMap::GetMap(
+        	QTSSDictionaryMap::kPrefsDictIndex)->SetAttribute(x,
+        					sAttributes[x].fAttrName,
+        					sAttributes[x].fFuncPtr,
+                            sAttributes[x].fAttrDataType,
+                            sAttributes[x].fAttrPermission);
 }
-
 
 void QTSServerPrefs::SetupAttributes()
 {
@@ -469,13 +473,8 @@ void QTSServerPrefs::SetupAttributes()
     this->SetVal(qtssPrefsEnableAllowGuestDefault,      &fAllowGuestAuthorizeDefault,   sizeof(fAllowGuestAuthorizeDefault)); //enable_allow_guest_authorize_default
     this->SetVal(qtssPrefsNumRTSPThreads,               &fNumRTSPThreads,               sizeof(fNumRTSPThreads));
     this->SetVal(qtssPrefs3GPPTargetTime,               &f3GPPRateAdaptTargetTime,      sizeof(f3GPPRateAdaptTargetTime));
-    
-    
-    
-
+   
 }
-
-
 
 void QTSServerPrefs::RereadServerPreferences(Bool16 inWriteMissingPrefs)
 {
